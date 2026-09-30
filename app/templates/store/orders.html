@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager, status_badge %}
+{% block title %}Mis pedidos{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Mis pedidos</h1></div>
+{% if pagination.items %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for order in pagination.items %}
+      <tr>
+        <td><a href="{{ url_for('store.order_detail', order_id=order.id) }}">{{ order.code }}</a></td>
+        <td>{{ order.created_at|datetimefmt }}</td>
+        <td>{{ status_badge(order.status) }}</td>
+        <td class="num">{{ order.total|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'store.orders') }}
+{% else %}
+<div class="card empty">Aún no has realizado pedidos.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import post_button %}
+{% block title %}Demanda{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Pronóstico de demanda</h1>
+    <p class="muted">El modelo aprende del historial semanal del almacén y alimenta el punto de reorden y la cantidad económica de pedido.</p>
+  </div>
+  {{ post_button(url_for('reports.ml_run'), 'Ejecutar pronóstico', 'btn btn-primary') }}
+</div>
+{% if run %}
+<div class="card">
+  <h2>Última ejecución</h2>
+  <p class="muted">{{ run.created_at|datetimefmt }} · {{ run.metrics.get('model_kind', 'sin modelo') }}</p>
+  {% if run.metrics.get('trained') %}
+  <div class="grid grid-4">
+    <div class="stat"><span class="label">Error medio absoluto</span><span class="value">{{ run.metrics.mae|decimal(2) }}</span><span class="note">unidades por producto y semana</span></div>
+    <div class="stat"><span class="label">Línea base (promedio 4 sem.)</span><span class="value">{{ run.metrics.baseline_mae|decimal(2) }}</span></div>
+    <div class="stat"><span class="label">Mejora frente a la base</span><span class="value">{{ run.metrics.improvement_pct|decimal(1) }} %</span></div>
+    <div class="stat"><span class="label">Productos calculados</span><span class="value">{{ run.metrics.products|number }}</span></div>
+  </div>
+  {% else %}
+  <p class="muted">No se entrenó el modelo: {{ run.metrics.get('reason', 'sin detalle') }}. Se usó el promedio reciente como pronóstico.</p>
+  {% endif %}
+</div>
+{% else %}
+<div class="card empty">Todavía no se ha ejecutado el pronóstico para esta empresa.</div>
+{% endif %}
+{% if top %}
+<div class="card dashboard-row">
+  <h2>Mayor demanda proyectada (próximas semanas)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>SKU</th><th>Producto</th><th class="num">Demanda proyectada</th><th class="num">Stock</th><th class="num">Reorden</th><th class="num">EOQ</th></tr></thead>
+      <tbody>
+        {% for row in top %}
+        <tr>
+          <td>{{ row.sku }}</td>
+          <td>{{ row.name }}</td>
+          <td class="num">{{ row.units|decimal(1) }}</td>
+          <td class="num">{{ row.quantity|number }}</td>
+          <td class="num">{{ row.reorder_point|number }}</td>
+          <td class="num">{{ row.eoq|number }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

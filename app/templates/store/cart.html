@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Carrito{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Carrito</h1>
+    <p class="muted">Cada tienda genera un pedido independiente.</p>
+  </div>
+</div>
+{% if groups %}
+{% for group in groups %}
+<div class="card">
+  <h2>{{ group.company.name }}</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Producto</th><th class="num">Precio</th><th>Cantidad</th><th class="num">Subtotal</th><th></th></tr></thead>
+      <tbody>
+        {% for line in group.lines %}
+        <tr>
+          <td>
+            <a href="{{ url_for('store.product', product_id=line.product.id) }}">{{ line.product.name }}</a>
+            {% if not line.available %}<br><span class="badge badge-danger">Stock insuficiente ({{ line.inventory.quantity }})</span>{% endif %}
+          </td>
+          <td class="num">{{ line.product.price|money }}</td>
+          <td>
+            <form method="post" action="{{ url_for('store.cart_update', product_id=line.product.id) }}" class="qty-form">
+              {{ quantity_form.hidden_tag() }}
+              <input class="input" type="number" name="quantity" min="0" max="{{ line.inventory.quantity }}" value="{{ line.item.quantity }}">
+              <button class="btn btn-sm" type="submit">Actualizar</button>
+            </form>
+          </td>
+          <td class="num">{{ line.line_total|money }}</td>
+          <td>
+            <form method="post" action="{{ url_for('store.cart_remove', product_id=line.product.id) }}" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-danger" type="submit">Quitar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><th colspan="3" class="num">Total</th><th class="num">{{ group.total|money }}</th><th></th></tr></tfoot>
+    </table>
+  </div>
+  <form method="post" action="{{ url_for('store.checkout', company_id=group.company.id) }}">
+    {{ checkout_form.hidden_tag() }}
+    <div class="field">
+      <label class="label" for="notes-{{ group.company.id }}">Notas del pedido</label>
+      <input class="input" id="notes-{{ group.company.id }}" name="notes" maxlength="500">
+    </div>
+    <button class="btn btn-primary" type="submit">Realizar pedido en {{ group.company.name }}</button>
+  </form>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty">Tu carrito está vacío. <a href="{{ url_for('store.index') }}">Explora las tiendas</a>.</div>
+{% endif %}
+{% endblock %}

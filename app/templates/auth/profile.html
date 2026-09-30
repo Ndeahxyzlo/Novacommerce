@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Mi perfil</h1>
+    <p class="muted">Datos de tu cuenta.</p>
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('auth.edit_profile') }}">Editar perfil</a>
+    <a class="btn" href="{{ url_for('auth.change_password') }}">Cambiar contraseña</a>
+  </div>
+</div>
+<div class="card">
+  <dl class="dl">
+    <dt>Nombre</dt><dd>{{ current_user.full_name }}</dd>
+    <dt>Correo</dt><dd>{{ current_user.email }}</dd>
+    <dt>Teléfono</dt><dd>{{ current_user.phone or '-' }}</dd>
+    <dt>Rol</dt><dd>{{ {'admin': 'Administrador', 'owner': 'Propietario', 'customer': 'Cliente'}[current_user.role] }}</dd>
+    {% if current_user.company %}<dt>Empresa</dt><dd>{{ current_user.company.name }}</dd>{% endif %}
+    <dt>Miembro desde</dt><dd>{{ current_user.created_at|datefmt }}</dd>
+    <dt>Último acceso</dt><dd>{{ current_user.last_login_at|datetimefmt }}</dd>
+  </dl>
+</div>
+{% endblock %}

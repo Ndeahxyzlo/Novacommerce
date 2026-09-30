@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import status_badge %}
+{% block title %}{{ order.code }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Pedido {{ order.code }}</h1>
+    <p class="muted">{{ order.created_at|datetimefmt }} · {{ order.channel|channel_label }}</p>
+  </div>
+  <div class="toolbar">
+    {{ status_badge(order.status) }}
+    {% for state in next_states %}
+    <form method="post" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="status" value="{{ state }}">
+      <button type="submit" class="btn btn-sm{% if state == 'cancelled' %} btn-danger{% endif %}"{% if state == 'cancelled' %} data-confirm="Se cancelará el pedido y se devolverá el stock. ¿Continuar?"{% endif %}>{{ 'Cancelar pedido' if state == 'cancelled' else 'Marcar como ' ~ status_labels[state]|lower }}</button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Cliente</h2>
+    {% if order.customer %}
+    <p><a href="{{ url_for('customers.view', customer_id=order.customer.id) }}">{{ order.customer.full_name }}</a></p>
+    <p class="muted">{{ order.customer.email or '' }}</p>
+    {% else %}
+    <p class="muted">Venta directa sin cliente registrado.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Notas</h2>
+    <p class="muted">{{ order.notes or 'Sin notas.' }}</p>
+  </div>
+</div>
+<div class="card dashboard-row">
+  <h2>Detalle</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>SKU</th><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Subtotal</th></tr></thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr>
+          <td>{{ item.sku }}</td>
+          <td>{{ item.product_name }}</td>
+          <td class="num">{{ item.quantity|number }}</td>
+          <td class="num">{{ item.unit_price|money }}</td>
+          <td class="num">{{ item.line_total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><th colspan="4" class="num">Total</th><th class="num">{{ order.total|money }}</th></tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

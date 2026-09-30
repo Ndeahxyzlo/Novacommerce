@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Análisis OLAP{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Análisis OLAP</h1>
+    <p class="muted">Consultas analíticas sobre el modelo estrella: rollup, curva ABC y segmentación RFM.</p>
+  </div>
+</div>
+{% if not ready %}
+<div class="card empty">El almacén de datos aún no está inicializado.</div>
+{% else %}
+<div class="card">
+  <h2>Ingresos por año y categoría (ROLLUP)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Año</th><th>Categoría</th><th class="num">Unidades</th><th class="num">Ingresos</th></tr></thead>
+      <tbody>
+        {% for row in rollup %}
+        <tr>
+          <td>{{ row.anio if row.g_anio == 0 else 'Total general' }}</td>
+          <td>{% if row.g_categoria == 0 %}{{ row.categoria }}{% elif row.g_anio == 0 %}<strong>Subtotal año</strong>{% else %}-{% endif %}</td>
+          <td class="num">{{ row.unidades|number }}</td>
+          <td class="num">{{ row.ingresos|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Segmentos de clientes (RFM)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Segmento</th><th class="num">Clientes</th><th class="num">Ingresos</th></tr></thead>
+        <tbody>
+          {% for row in rfm %}
+          <tr><td>{{ row.segmento }}</td><td class="num">{{ row.clientes|number }}</td><td class="num">{{ row.ingresos|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Curva ABC de productos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Clase</th><th>Producto</th><th class="num">Ingresos</th><th class="num">Acumulado</th></tr></thead>
+        <tbody>
+          {% for row in abc[:25] %}
+          <tr>
+            <td><span class="badge {{ 'badge-ok' if row.clase == 'A' else ('badge-warn' if row.clase == 'B' else '') }}">{{ row.clase }}</span></td>
+            <td>{{ row.nombre }}</td>
+            <td class="num">{{ row.ingresos|money }}</td>
+            <td class="num">{{ row.acumulado_pct|decimal(1) }} %</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import stat, status_badge %}
+{% block title %}Panel{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Panel de {{ current_user.company.name }}</h1>
+    <p class="muted">Resumen operativo del mes en curso.</p>
+  </div>
+  <div class="toolbar">
+    <a class="btn btn-primary" href="{{ url_for('orders.create') }}">Registrar venta</a>
+    <a class="btn" href="{{ url_for('products.create') }}">Nuevo producto</a>
+  </div>
+</div>
+
+<div class="grid grid-4">
+  {{ stat('Ingresos del mes', month_revenue|money) }}
+  {{ stat('Pedidos del mes', month_orders|number, pending_orders|string ~ ' pendientes') }}
+  {{ stat('Clientes', customers|number) }}
+  {{ stat('Productos activos', products|number, low_stock|string ~ ' bajo punto de reorden') }}
+</div>
+
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Ventas de los últimos 30 días</h2>
+    <div class="chart" data-type="line" data-label="Ventas diarias" data-chart='{{ series|tojson }}'></div>
+  </div>
+  <div class="card">
+    <h2>Productos más vendidos</h2>
+    {% if top %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Producto</th><th class="num">Unidades</th><th class="num">Ingresos</th></tr></thead>
+        <tbody>
+          {% for row in top %}
+          <tr><td>{{ row.product_name }}</td><td class="num">{{ row.units|number }}</td><td class="num">{{ row.revenue|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Aún no hay ventas en el periodo.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="page-head">
+    <h2>Pedidos recientes</h2>
+    <a href="{{ url_for('orders.index') }}">Ver todos</a>
+  </div>
+  {% if recent %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pedido</th><th>Fecha</th><th>Canal</th><th>Estado</th><th class="num">Total</th></tr></thead>
+      <tbody>
+        {% for order in recent %}
+        <tr>
+          <td><a href="{{ url_for('orders.view', order_id=order.id) }}">{{ order.code }}</a></td>
+          <td>{{ order.created_at|datetimefmt }}</td>
+          <td>{{ order.channel|channel_label }}</td>
+          <td>{{ status_badge(order.status) }}</td>
+          <td class="num">{{ order.total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Todavía no hay pedidos.</p>
+  {% endif %}
+</div>
+{% endblock %}

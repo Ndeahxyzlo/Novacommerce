@@ -1,0 +1,43 @@
+{% macro field(f) %}
+<div class="field{% if f.errors %} invalid{% endif %}">
+  {{ f.label(class_="label") }}
+  {{ f(class_="input", **kwargs) }}
+  {% for message in f.errors %}<p class="error">{{ message }}</p>{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro check(f) %}
+<div class="check">
+  {{ f() }}
+  {{ f.label() }}
+</div>
+{% endmacro %}
+
+{% macro post_button(url, label, css="btn", confirm=None) %}
+<form method="post" action="{{ url }}" class="inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="{{ css }}"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ label }}</button>
+</form>
+{% endmacro %}
+
+{% macro pager(p, endpoint) %}
+{% if p.pages > 1 %}
+<nav class="pager" aria-label="Paginación">
+  {% if p.has_prev %}<a class="btn btn-sm" href="{{ url_for(endpoint, page=p.prev_num, **kwargs) }}">Anterior</a>{% endif %}
+  <span class="muted small">Página {{ p.page }} de {{ p.pages }} ({{ p.total|number }} registros)</span>
+  {% if p.has_next %}<a class="btn btn-sm" href="{{ url_for(endpoint, page=p.next_num, **kwargs) }}">Siguiente</a>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{% macro status_badge(status) %}
+<span class="badge badge-{{ status }}">{{ status|status_label }}</span>
+{% endmacro %}
+
+{% macro stat(label, value, note=None) %}
+<div class="card stat">
+  <span class="label">{{ label }}</span>
+  <span class="value">{{ value }}</span>
+  {% if note %}<span class="note">{{ note }}</span>{% endif %}
+</div>
+{% endmacro %}

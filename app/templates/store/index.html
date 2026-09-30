@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Tiendas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Tiendas</h1>
+    <p class="muted">Elige una tienda para ver su catálogo.</p>
+  </div>
+</div>
+{% if stores %}
+<div class="grid grid-3">
+  {% for company, total in stores %}
+  <a class="card product-card" href="{{ url_for('store.store_detail', slug=company.slug) }}">
+    <div class="thumb">{{ company.name[:1] }}</div>
+    <h3>{{ company.name }}</h3>
+    <p class="muted small">{{ company.city or company.country }} · {{ total|number }} productos</p>
+    <p class="muted">{{ company.description or 'Explora el catálogo de esta tienda.' }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">Todavía no hay tiendas publicadas.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Favoritos{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Favoritos</h1></div>
+{% if rows %}
+<div class="grid grid-4">
+  {% for product, inventory in rows %}
+  <div class="card product-card">
+    <a href="{{ url_for('store.product', product_id=product.id) }}"><div class="thumb">{{ product.name[:1] }}</div></a>
+    <a href="{{ url_for('store.product', product_id=product.id) }}"><strong>{{ product.name }}</strong></a>
+    <div class="price">{{ product.price|money }}</div>
+    {% if inventory.quantity > 0 %}
+    <form method="post" action="{{ url_for('store.cart_add', product_id=product.id) }}" class="qty-form">
+      {{ quantity_form.hidden_tag() }}
+      <input class="input" type="number" name="quantity" min="1" max="{{ inventory.quantity }}" value="1">
+      <button class="btn btn-primary btn-sm" type="submit">Agregar</button>
+    </form>
+    {% else %}
+    <span class="badge badge-danger">Agotado</span>
+    {% endif %}
+    <form method="post" action="{{ url_for('store.wishlist_toggle', product_id=product.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-sm" type="submit">Quitar</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">No tienes productos favoritos todavía.</div>
+{% endif %}
+{% endblock %}

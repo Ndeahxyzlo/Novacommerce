@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import field, post_button %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ product.name }}</h1>
+    <p class="muted">SKU {{ product.sku }} · {{ product.category }}{% if not product.active %} · <span class="badge">Inactivo</span>{% endif %}</p>
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('products.edit', product_id=product.id) }}">Editar</a>
+    {{ post_button(url_for('products.delete', product_id=product.id), 'Eliminar', 'btn btn-danger', 'Se eliminará el producto. Si tiene ventas se desactivará. ¿Continuar?') }}
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Detalle</h2>
+    <dl class="dl">
+      <dt>Precio</dt><dd>{{ product.price|money }}</dd>
+      <dt>Costo</dt><dd>{{ product.cost|money }}</dd>
+      <dt>Margen unitario</dt><dd>{{ (product.price - product.cost)|money }}</dd>
+      <dt>Descripción</dt><dd>{{ product.description or '-' }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h2>Inventario</h2>
+    <dl class="dl">
+      <dt>Stock actual</dt><dd><strong>{{ product.inventory.quantity|number }}</strong>{% if product.inventory.needs_restock %} <span class="badge badge-warn">Reponer</span>{% endif %}</dd>
+      <dt>Punto de reorden</dt><dd>{{ product.inventory.reorder_point|number }}</dd>
+      <dt>Stock de seguridad</dt><dd>{{ product.inventory.safety_stock|number }}</dd>
+      <dt>Cantidad económica (EOQ)</dt><dd>{{ product.inventory.eoq|number }}</dd>
+    </dl>
+    <form method="post" action="{{ url_for('products.stock', product_id=product.id) }}" class="filters">
+      {{ adjust_form.hidden_tag() }}
+      {{ adjust_form.delta(class_="input", placeholder="Cantidad") }}
+      {{ adjust_form.reason(class_="input") }}
+      <button class="btn btn-primary" type="submit">Ajustar</button>
+    </form>
+  </div>
+</div>
+
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Demanda proyectada</h2>
+    {% if forecast %}
+    <div class="chart" data-type="bars" data-label="Demanda semanal proyectada" data-chart='{{ forecast_series|tojson }}'></div>
+    {% else %}
+    <p class="empty">Ejecuta el pronóstico desde la sección Demanda para ver la proyección.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Últimos movimientos</h2>
+    {% if movements %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Motivo</th><th>Referencia</th><th class="num">Cantidad</th></tr></thead>
+        <tbody>
+          {% for m in movements %}
+          <tr><td>{{ m.created_at|datetimefmt }}</td><td>{{ m.reason }}</td><td>{{ m.reference or '-' }}</td><td class="num">{{ m.delta }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Sin movimientos registrados.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

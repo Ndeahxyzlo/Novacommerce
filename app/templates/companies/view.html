@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Mi empresa{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ company.name }}</h1>
+    <p class="muted">Datos de la empresa y parámetros de reposición.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('companies.edit') }}">Editar</a>
+</div>
+<div class="grid grid-2">
+  <div class="card">
+    <h2>Información</h2>
+    <dl class="dl">
+      <dt>Descripción</dt><dd>{{ company.description or '-' }}</dd>
+      <dt>Correo</dt><dd>{{ company.email or '-' }}</dd>
+      <dt>Teléfono</dt><dd>{{ company.phone or '-' }}</dd>
+      <dt>Ciudad</dt><dd>{{ company.city or '-' }}</dd>
+      <dt>País</dt><dd>{{ company.country }}</dd>
+      <dt>Moneda</dt><dd>{{ company.currency }}</dd>
+      <dt>Tienda pública</dt><dd><a href="{{ url_for('store.store_detail', slug=company.slug) }}">{{ url_for('store.store_detail', slug=company.slug) }}</a></dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h2>Parámetros de inventario</h2>
+    <dl class="dl">
+      <dt>Tiempo de reposición</dt><dd>{{ company.lead_time_days }} días</dd>
+      <dt>Costo por pedido</dt><dd>{{ company.order_cost|money }}</dd>
+      <dt>Costo de mantener</dt><dd>{{ (company.holding_rate * 100)|decimal(1) }} % anual</dd>
+      <dt>Nivel de servicio</dt><dd>{{ (company.service_level * 100)|decimal(1) }} %</dd>
+    </dl>
+    <p class="small muted">Estos valores alimentan el cálculo del punto de reorden, el stock de seguridad y la cantidad económica de pedido.</p>
+  </div>
+</div>
+{% endblock %}

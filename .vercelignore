@@ -1,0 +1,9 @@
+database/
+docs/
+tests/
+instalar_linux.sh
+instalar_windows.bat
+docker-compose.metabase.yml
+Procfile
+runtime.txt
+.env

@@ -1,0 +1,18 @@
+{% from 'partials/macros.html' import field %}
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="card">
+    <div class="form-grid">
+      {{ field(form.first_name) }}
+      {{ field(form.last_name) }}
+      {{ field(form.email) }}
+      {{ field(form.phone) }}
+      {{ field(form.city) }}
+      {{ field(form.country) }}
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <a class="btn" href="{{ cancel_url }}">Cancelar</a>
+  </div>
+</form>

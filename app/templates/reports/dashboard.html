@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import stat, post_button %}
+{% block title %}Resumen analítico{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Resumen analítico</h1>
+    <p class="muted">Indicadores calculados sobre el almacén de datos.</p>
+  </div>
+  {{ post_button(url_for('reports.refresh'), 'Actualizar almacén', 'btn btn-primary') }}
+</div>
+{% if not ready or kpis.ordenes == 0 %}
+<div class="card empty">Aún no hay datos en el almacén. Registra ventas y usa Actualizar almacén para cargarlos.</div>
+{% else %}
+<div class="grid grid-4">
+  {{ stat('Ingresos', kpis.ingresos|money) }}
+  {{ stat('Margen bruto', kpis.margen|money, ((kpis.margen / kpis.ingresos * 100) if kpis.ingresos else 0)|decimal(1) ~ ' % de los ingresos') }}
+  {{ stat('Pedidos', kpis.ordenes|number) }}
+  {{ stat('Clientes activos', kpis.clientes|number, 'Cancelado: ' ~ (kpis.cancelado|money)) }}
+</div>
+<div class="card dashboard-row">
+  <h2>Ingresos mensuales</h2>
+  <div class="chart" data-type="bars" data-label="Ingresos mensuales" data-chart='{{ monthly_series|tojson }}'></div>
+</div>
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Crecimiento mensual</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Periodo</th><th class="num">Ingresos</th><th class="num">Margen</th><th class="num">Pedidos</th><th class="num">Variación</th></tr></thead>
+        <tbody>
+          {% for row in monthly[-12:] %}
+          <tr>
+            <td>{{ row.nombre_mes }} {{ row.anio }}</td>
+            <td class="num">{{ row.ingresos|money }}</td>
+            <td class="num">{{ row.margen|money }}</td>
+            <td class="num">{{ row.ordenes|number }}</td>
+            <td class="num">{% if row.crecimiento_pct is not none %}{{ row.crecimiento_pct|decimal(1) }} %{% else %}-{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Productos con más ingresos</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Producto</th><th class="num">Unidades</th><th class="num">Ingresos</th></tr></thead>
+        <tbody>
+          {% for row in top %}
+          <tr><td>{{ row.posicion }}</td><td>{{ row.nombre }}</td><td class="num">{{ row.unidades|number }}</td><td class="num">{{ row.ingresos|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Por canal</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Canal</th><th class="num">Pedidos</th><th class="num">Ingresos</th></tr></thead>
+        <tbody>
+          {% for row in channels %}
+          <tr><td>{{ row.canal }}</td><td class="num">{{ row.ordenes|number }}</td><td class="num">{{ row.ingresos|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Por día de la semana</h2>
+    <div class="chart" data-type="bars" data-label="Ingresos por día" data-chart='{{ weekday_series|tojson }}'></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

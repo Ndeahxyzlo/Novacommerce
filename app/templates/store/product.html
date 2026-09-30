@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<p class="small"><a href="{{ url_for('store.store_detail', slug=company.slug) }}">{{ company.name }}</a> / {{ product.category }}</p>
+<div class="grid grid-2">
+  <div class="card product-card"><div class="thumb">{{ product.name[:1] }}</div></div>
+  <div class="card">
+    <h1>{{ product.name }}</h1>
+    <p class="muted">SKU {{ product.sku }}</p>
+    <p class="price">{{ product.price|money }}</p>
+    <p>{{ product.description or 'Sin descripción disponible.' }}</p>
+    <p>
+      {% if inventory.quantity > 0 %}<span class="badge badge-ok">{{ inventory.quantity|number }} disponibles</span>
+      {% else %}<span class="badge badge-danger">Agotado</span>{% endif %}
+    </p>
+    {% if inventory.quantity > 0 %}
+    {% if current_user.is_authenticated and current_user.is_customer %}
+    <form method="post" action="{{ url_for('store.cart_add', product_id=product.id) }}" class="qty-form">
+      {{ quantity_form.hidden_tag() }}
+      <input class="input" type="number" name="quantity" min="1" max="{{ inventory.quantity }}" value="1">
+      <button class="btn btn-primary" type="submit">Agregar al carrito</button>
+    </form>
+    {% elif not current_user.is_authenticated %}
+    <a class="btn btn-primary" href="{{ url_for('auth.login', next=request.path) }}">Ingresa para comprar</a>
+    {% endif %}
+    {% endif %}
+    {% if current_user.is_authenticated and current_user.is_customer %}
+    <form method="post" action="{{ url_for('store.wishlist_toggle', product_id=product.id) }}" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">{{ 'Quitar de favoritos' if wished else 'Guardar en favoritos' }}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

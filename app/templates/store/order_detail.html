@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import post_button, status_badge %}
+{% block title %}{{ order.code }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Pedido {{ order.code }}</h1>
+    <p class="muted">{{ company.name }} · {{ order.created_at|datetimefmt }}</p>
+  </div>
+  <div class="toolbar">
+    {{ status_badge(order.status) }}
+    {% if order.status == 'pending' %}
+    {{ post_button(url_for('store.order_cancel', order_id=order.id), 'Cancelar pedido', 'btn btn-sm btn-danger', 'Se cancelará el pedido. ¿Continuar?') }}
+    {% endif %}
+  </div>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Producto</th><th class="num">Cantidad</th><th class="num">Precio</th><th class="num">Subtotal</th></tr></thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr>
+          <td>{{ item.product_name }}</td>
+          <td class="num">{{ item.quantity|number }}</td>
+          <td class="num">{{ item.unit_price|money }}</td>
+          <td class="num">{{ item.line_total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot><tr><th colspan="3" class="num">Total</th><th class="num">{{ order.total|money }}</th></tr></tfoot>
+    </table>
+  </div>
+  {% if order.notes %}<p class="muted">Notas: {{ order.notes }}</p>{% endif %}
+</div>
+{% endblock %}

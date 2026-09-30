@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager %}
+{% block title %}Clientes{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Clientes</h1>
+    <p class="muted">Personas y empresas que compran en tu negocio.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('customers.create') }}">Nuevo cliente</a>
+</div>
+<form method="get" class="filters">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre, correo o ciudad">
+  <button class="btn" type="submit">Buscar</button>
+</form>
+{% if pagination.items %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Cliente</th><th>Correo</th><th>Teléfono</th><th>Ciudad</th><th>Alta</th></tr></thead>
+    <tbody>
+      {% for customer in pagination.items %}
+      <tr>
+        <td><a href="{{ url_for('customers.view', customer_id=customer.id) }}">{{ customer.full_name }}</a></td>
+        <td>{{ customer.email or '-' }}</td>
+        <td>{{ customer.phone or '-' }}</td>
+        <td>{{ customer.city or '-' }}</td>
+        <td>{{ customer.created_at|datefmt }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'customers.index', q=q) }}
+{% else %}
+<div class="card empty">No hay clientes que coincidan.</div>
+{% endif %}
+{% endblock %}

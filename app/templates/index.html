@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Vende en línea y decide con datos</h1>
+  <p>NovaCommerce reúne catálogo, inventario, pedidos y analítica en una sola plataforma para pequeñas y medianas empresas, con pronóstico de demanda que te dice cuándo y cuánto reponer.</p>
+  <div class="toolbar">
+    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+    <a class="btn" href="{{ url_for('store.index') }}">Explorar tiendas</a>
+  </div>
+</section>
+<section class="grid grid-3">
+  <div class="card feature">
+    <h3>Operación completa</h3>
+    <p class="muted">Productos, clientes, ventas directas, tienda en línea y control de stock sin sobreventas.</p>
+  </div>
+  <div class="card feature">
+    <h3>Almacén de datos</h3>
+    <p class="muted">Modelo estrella con carga incremental y consultas OLAP para entender ventas, categorías y clientes.</p>
+  </div>
+  <div class="card feature">
+    <h3>Reposición inteligente</h3>
+    <p class="muted">Pronóstico de demanda por producto que alimenta el punto de reorden y la cantidad económica de pedido.</p>
+  </div>
+</section>
+{% endblock %}

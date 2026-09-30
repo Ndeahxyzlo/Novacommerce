@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import stat, post_button %}
+{% block title %}Administración{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Administración de la plataforma</h1>
+    <p class="muted">Vista global de empresas, usuarios y procesos de datos.</p>
+  </div>
+  {{ post_button(url_for('admin.pipeline'), 'Ejecutar ETL y pronósticos', 'btn btn-primary', 'Se actualizará el almacén y se reentrenarán los modelos de todas las empresas. ¿Continuar?') }}
+</div>
+<div class="grid grid-4">
+  {{ stat('Empresas', totals.companies|number) }}
+  {{ stat('Usuarios', totals.users|number) }}
+  {{ stat('Productos', totals.products|number) }}
+  {{ stat('Pedidos', totals.orders|number) }}
+</div>
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Ingresos por empresa (almacén)</h2>
+    {% if overview %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Empresa</th><th class="num">Pedidos</th><th class="num">Clientes</th><th class="num">Ingresos</th></tr></thead>
+        <tbody>
+          {% for row in overview %}
+          <tr><td>{{ row.nombre }}</td><td class="num">{{ row.ordenes|number }}</td><td class="num">{{ row.clientes|number }}</td><td class="num">{{ row.ingresos|money }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">El almacén todavía no tiene datos.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Ejecuciones de modelos</h2>
+    {% if runs %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th>Empresa</th></tr></thead>
+        <tbody>
+          {% for run in runs %}
+          <tr><td>{{ run.created_at|datetimefmt }}</td><td>{{ run.kind }}</td><td>{{ run.status }}</td><td>{{ run.company_id or 'Plataforma' }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Sin ejecuciones registradas.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

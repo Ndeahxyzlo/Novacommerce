@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NovaCommerce{% endblock %} | NovaCommerce</title>
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body>
+{% set is_shell = current_user.is_authenticated and (current_user.is_owner or current_user.is_admin) %}
+{% set endpoint = request.endpoint or '' %}
+{% if is_shell %}
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('main.index') }}"><span class="brand-mark">N</span>NovaCommerce</a>
+    <nav class="nav" aria-label="Principal">
+      {% if current_user.is_owner %}
+      <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if endpoint == 'main.dashboard' }}">Panel</a>
+      <a href="{{ url_for('products.index') }}" class="{{ 'active' if endpoint.startswith('products.') }}">Productos</a>
+      <a href="{{ url_for('orders.index') }}" class="{{ 'active' if endpoint.startswith('orders.') }}">Pedidos</a>
+      <a href="{{ url_for('customers.index') }}" class="{{ 'active' if endpoint.startswith('customers.') }}">Clientes</a>
+      <span class="nav-title">Analítica</span>
+      <a href="{{ url_for('reports.dashboard') }}" class="{{ 'active' if endpoint == 'reports.dashboard' }}">Resumen</a>
+      <a href="{{ url_for('reports.sales') }}" class="{{ 'active' if endpoint == 'reports.sales' }}">Ventas</a>
+      <a href="{{ url_for('reports.inventory') }}" class="{{ 'active' if endpoint == 'reports.inventory' }}">Inventario</a>
+      <a href="{{ url_for('reports.olap') }}" class="{{ 'active' if endpoint == 'reports.olap' }}">Análisis OLAP</a>
+      <a href="{{ url_for('reports.ml') }}" class="{{ 'active' if endpoint.startswith('reports.ml') }}">Demanda</a>
+      <span class="nav-title">Cuenta</span>
+      <a href="{{ url_for('companies.view') }}" class="{{ 'active' if endpoint.startswith('companies.') }}">Mi empresa</a>
+      {% else %}
+      <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if endpoint == 'admin.dashboard' }}">Resumen</a>
+      <a href="{{ url_for('admin.companies') }}" class="{{ 'active' if endpoint in ('admin.companies', 'admin.toggle_company') }}">Empresas</a>
+      <a href="{{ url_for('admin.users') }}" class="{{ 'active' if endpoint in ('admin.users', 'admin.toggle_user') }}">Usuarios</a>
+      <a href="{{ url_for('admin.security') }}" class="{{ 'active' if endpoint.startswith('admin.security') or endpoint == 'admin.train_anomaly' }}">Seguridad</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-foot">
+      <a href="{{ url_for('auth.profile') }}"><strong>{{ current_user.full_name }}</strong></a>
+      <span class="muted small">{{ current_user.email }}</span>
+      <div class="toolbar">
+        <button type="button" class="icon-btn" data-theme-toggle aria-label="Cambiar tema">Tema</button>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="icon-btn">Salir</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+  <main class="content">
+{% else %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ url_for('main.index') }}"><span class="brand-mark">N</span>NovaCommerce</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="{{ url_for('store.index') }}" class="{{ 'active' if endpoint in ('store.index', 'store.store_detail', 'store.product') }}">Tiendas</a>
+      {% if current_user.is_authenticated and current_user.is_customer %}
+      <a href="{{ url_for('store.cart') }}" class="{{ 'active' if endpoint == 'store.cart' }}">Carrito{% if cart_count %} <span class="badge badge-ok">{{ cart_count }}</span>{% endif %}</a>
+      <a href="{{ url_for('store.orders') }}" class="{{ 'active' if endpoint in ('store.orders', 'store.order_detail') }}">Mis pedidos</a>
+      <a href="{{ url_for('store.wishlist') }}" class="{{ 'active' if endpoint == 'store.wishlist' }}">Favoritos</a>
+      {% endif %}
+    </nav>
+    <div class="actions">
+      <button type="button" class="icon-btn" data-theme-toggle aria-label="Cambiar tema">Tema</button>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('auth.profile') }}">{{ current_user.first_name }}</a>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="icon-btn">Salir</button>
+      </form>
+      {% else %}
+      <a class="btn btn-sm" href="{{ url_for('auth.login') }}">Ingresar</a>
+      <a class="btn btn-sm btn-primary" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+<main class="content public-main">
+{% endif %}
+    {% include 'partials/flashes.html' %}
+    {% block content %}{% endblock %}
+{% if is_shell %}
+  </main>
+</div>
+{% else %}
+</main>
+<footer class="footer">NovaCommerce, plataforma de comercio electrónico para pymes.</footer>
+{% endif %}
+</body>
+</html>

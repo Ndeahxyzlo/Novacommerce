@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager %}
+{% block title %}Productos{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Productos</h1>
+    <p class="muted">Catálogo e inventario de tu empresa.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('products.create') }}">Nuevo producto</a>
+</div>
+
+<form method="get" class="filters">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre o SKU">
+  <select name="category" data-autosubmit>
+    <option value="">Todas las categorías</option>
+    {% for name in categories %}<option value="{{ name }}"{% if name == category %} selected{% endif %}>{{ name }}</option>{% endfor %}
+  </select>
+  <select name="state" data-autosubmit>
+    <option value="">Todos</option>
+    <option value="active"{% if state == 'active' %} selected{% endif %}>Activos</option>
+    <option value="inactive"{% if state == 'inactive' %} selected{% endif %}>Inactivos</option>
+    <option value="low"{% if state == 'low' %} selected{% endif %}>Bajo punto de reorden</option>
+  </select>
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+
+{% if pagination.items %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>SKU</th><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Stock</th><th class="num">Reorden</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for product, inventory in pagination.items %}
+      <tr>
+        <td class="nowrap">{{ product.sku }}</td>
+        <td><a href="{{ url_for('products.view', product_id=product.id) }}">{{ product.name }}</a></td>
+        <td>{{ product.category }}</td>
+        <td class="num">{{ product.price|money }}</td>
+        <td class="num">{{ inventory.quantity|number }}</td>
+        <td class="num">{{ inventory.reorder_point|number }}</td>
+        <td>
+          {% if not product.active %}<span class="badge">Inactivo</span>
+          {% elif inventory.needs_restock %}<span class="badge badge-warn">Reponer</span>
+          {% else %}<span class="badge badge-ok">Disponible</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'products.index', q=q, category=category, state=state) }}
+{% else %}
+<div class="card empty">No hay productos que coincidan con la búsqueda.</div>
+{% endif %}
+{% endblock %}

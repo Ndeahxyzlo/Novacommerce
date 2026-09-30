@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager, status_badge %}
+{% block title %}Pedidos{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Pedidos</h1>
+    <p class="muted">Ventas de la tienda en línea y ventas directas.</p>
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('orders.export', **filters) }}">Exportar CSV</a>
+    <a class="btn btn-primary" href="{{ url_for('orders.create') }}">Registrar venta</a>
+  </div>
+</div>
+<form method="get" class="filters">
+  <input class="input" type="search" name="q" value="{{ filters.q }}" placeholder="Número o cliente">
+  <select name="status" data-autosubmit>
+    <option value="">Todos los estados</option>
+    {% for s in statuses %}<option value="{{ s }}"{% if s == filters.status %} selected{% endif %}>{{ status_labels[s] }}</option>{% endfor %}
+  </select>
+  <input class="input" type="date" name="from" value="{{ filters['from'] }}">
+  <input class="input" type="date" name="to" value="{{ filters.to }}">
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+{% if pagination.items %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Estado</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for order, customer in pagination.items %}
+      <tr>
+        <td><a href="{{ url_for('orders.view', order_id=order.id) }}">{{ order.code }}</a></td>
+        <td>{{ order.created_at|datetimefmt }}</td>
+        <td>{{ customer.full_name if customer else 'Venta directa' }}</td>
+        <td>{{ order.channel|channel_label }}</td>
+        <td>{{ status_badge(order.status) }}</td>
+        <td class="num">{{ order.total|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'orders.index', q=filters.q, status=filters.status, **{'from': filters['from'], 'to': filters.to}) }}
+{% else %}
+<div class="card empty">No hay pedidos que coincidan.</div>
+{% endif %}
+{% endblock %}

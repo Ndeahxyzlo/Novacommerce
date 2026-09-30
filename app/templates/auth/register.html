@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import field %}
+{% block title %}Crear cuenta{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <h1>Crear cuenta</h1>
+    <p class="muted">Compra en las tiendas de la plataforma o abre la tuya.</p>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.account_type) }}
+      <div class="form-grid">
+        {{ field(form.first_name, autocomplete="given-name") }}
+        {{ field(form.last_name, autocomplete="family-name") }}
+      </div>
+      {{ field(form.email, autocomplete="email") }}
+      {{ field(form.phone, autocomplete="tel") }}
+      {{ field(form.company_name) }}
+      {{ field(form.password, autocomplete="new-password") }}
+      {{ field(form.confirm, autocomplete="new-password") }}
+      <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
+    </form>
+    <p class="small muted">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
+  </div>
+</div>
+{% endblock %}
