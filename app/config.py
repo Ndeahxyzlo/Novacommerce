@@ -24,7 +24,7 @@ class BaseConfig:
     SECRET_KEY = os.getenv("SECRET_KEY", "novacommerce-development-key-change-me")
     SQLALCHEMY_DATABASE_URI = normalize_database_url(os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL))
     SQLALCHEMY_ENGINE_OPTIONS = (
-        {"poolclass": NullPool, "connect_args": {"options": "-c timezone=UTC"}}
+        {"poolclass": NullPool}
         if SERVERLESS
         else {
             "pool_pre_ping": True,
