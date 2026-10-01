@@ -131,7 +131,11 @@ def test_purchase_page_renders(seeded, client, ctx):
     etl.run_etl(full=True)
     demand.run_all_companies()
     login(client, "owner.tienda-andina@novacommerce.local", "Demo12345x")
-    assert client.get("/reportes/compras").status_code == 200
+    page = client.get("/reportes/compras")
+    assert page.status_code == 200
+    html = page.get_data(as_text=True)
+    for fragment in ("Variables de decisión", "Maximizar Z", "No negatividad", "Precio sombra"):
+        assert fragment in html
     assert client.get("/reportes/compras?presupuesto=500000&capacidad=40").status_code == 200
     assert client.get("/reportes/compras?presupuesto=abc&capacidad=-5").status_code == 200
 

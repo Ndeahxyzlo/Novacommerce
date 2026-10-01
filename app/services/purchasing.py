@@ -35,6 +35,8 @@ def restock_candidates(company_id):
 def empty_plan(budget, capacity):
     return {
         "status": "sin_candidatos",
+        "usage": [],
+        "at_limit": 0,
         "items": [],
         "budget": budget or 0.0,
         "capacity": capacity or 0.0,
@@ -83,6 +85,8 @@ def purchase_plan(company_id, budget=None, capacity=None):
     for position, (product, inventory) in enumerate(candidates):
         items.append(
             {
+                "index": position + 1,
+                "var": "x{}".format(position + 1),
                 "product_id": product.id,
                 "sku": product.sku,
                 "name": product.name,
@@ -102,8 +106,30 @@ def purchase_plan(company_id, budget=None, capacity=None):
     slack_budget = budget - spent
     slack_capacity = capacity - float(quantities.sum())
     duals = result["duals"]
+    usage = [
+        {
+            "resource": "Presupuesto",
+            "equivalent": "materia prima",
+            "available": float(budget),
+            "used": spent,
+            "slack": float(slack_budget),
+            "shadow": float(duals[0]),
+            "money": True,
+        },
+        {
+            "resource": "Capacidad de bodega",
+            "equivalent": "capacidad de producción",
+            "available": float(capacity),
+            "used": float(units),
+            "slack": float(slack_capacity),
+            "shadow": float(duals[1]),
+            "money": False,
+        },
+    ]
     return {
         "status": "ok",
+        "usage": usage,
+        "at_limit": sum(1 for item in items if item["quantity"] >= item["eoq"]),
         "items": items,
         "budget": float(budget),
         "capacity": float(capacity),

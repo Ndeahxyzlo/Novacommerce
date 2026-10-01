@@ -22,6 +22,51 @@
   <div class="card stat"><span class="label">Unidades a pedir</span><span class="value">{{ plan.totals.units|number }}</span><span class="note">capacidad: {{ plan.capacity|number }}</span></div>
   <div class="card stat"><span class="label">Productos a reponer</span><span class="value">{{ plan['items']|selectattr('quantity')|list|length|number }}</span><span class="note">de {{ plan.variables|number }} candidatos</span></div>
 </div>
+{% set ordered = plan['items']|sort(attribute='index') %}
+{% set shown = ordered[:4] %}
+{% macro expression(coefficient) %}{% for item in shown %}{{ item[coefficient]|number }} {{ item.var }}{% if not loop.last %} + {% endif %}{% endfor %}{% if ordered|length > shown|length %} + ... + {{ ordered[-1][coefficient]|number }} {{ ordered[-1].var }}{% endif %}{% endmacro %}
+<div class="card dashboard-row">
+  <h2>Modelo de programación lineal</h2>
+  <p>Se formula como en el método clásico de recursos limitados: el presupuesto cumple el papel de la materia prima y la capacidad de bodega el de la capacidad de producción.</p>
+  <ol>
+    <li><strong>Variables de decisión.</strong> {% if ordered|length > 1 %}x1, ..., x{{ ordered|length }}{% else %}x1{% endif %}: unidades que se piden de cada producto en o bajo su punto de reorden (<span class="muted">{{ plan.variables|number }} productos</span>).</li>
+    <li><strong>Función objetivo.</strong> Maximizar Z = {{ expression('margin') }}, donde cada coeficiente es el margen unitario (precio menos costo).</li>
+    <li><strong>Restricciones de recursos y capacidad.</strong>
+      <ul>
+        <li>Presupuesto (materia prima): {{ expression('cost') }} &le; {{ plan.budget|number }}</li>
+        <li>Capacidad de bodega (capacidad de producción): x1 + ... + x{{ ordered|length }} &le; {{ plan.capacity|number }}</li>
+        <li>Demanda esperada: cada xi &le; su EOQ ({{ plan.at_limit|number }} de {{ plan.variables|number }} productos llegan a ese tope).</li>
+      </ul>
+    </li>
+    <li><strong>No negatividad.</strong> xi &ge; 0 para todo i.</li>
+  </ol>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Recurso</th><th>Equivale a</th><th class="num">Disponible</th><th class="num">Usado</th><th class="num">Holgura</th><th class="num">Precio sombra</th></tr>
+      </thead>
+      <tbody>
+        {% for row in plan.usage %}
+        <tr>
+          <td>{{ row.resource }}</td>
+          <td>{{ row.equivalent }}</td>
+          {% if row.money %}
+          <td class="num">{{ row.available|money }}</td>
+          <td class="num">{{ row.used|money }}</td>
+          <td class="num">{{ row.slack|money }}</td>
+          <td class="num">{{ row.shadow|decimal(3) }}</td>
+          {% else %}
+          <td class="num">{{ row.available|number }}</td>
+          <td class="num">{{ row.used|number }}</td>
+          <td class="num">{{ row.slack|number }}</td>
+          <td class="num">{{ row.shadow|money }}</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 <div class="card dashboard-row">
   <h2>Lectura del resultado</h2>
   <p>El modelo maximiza el margen (precio menos costo) de lo que se pide, sujeto al presupuesto, a la capacidad de bodega y a que ningún producto supere su cantidad económica de pedido (EOQ).</p>
@@ -34,11 +79,12 @@
 <div class="table-wrap dashboard-row">
   <table>
     <thead>
-      <tr><th>SKU</th><th>Producto</th><th class="num">Stock</th><th class="num">Reorden</th><th class="num">EOQ</th><th class="num">Costo unit.</th><th class="num">Margen unit.</th><th class="num">Pedir</th><th class="num">Inversión</th></tr>
+      <tr><th>Var.</th><th>SKU</th><th>Producto</th><th class="num">Stock</th><th class="num">Reorden</th><th class="num">EOQ</th><th class="num">Costo unit.</th><th class="num">Margen unit.</th><th class="num">Pedir</th><th class="num">Inversión</th></tr>
     </thead>
     <tbody>
       {% for item in plan['items'] %}
       <tr>
+        <td>{{ item.var }}</td>
         <td>{{ item.sku }}</td>
         <td><a href="{{ url_for('products.view', product_id=item.product_id) }}">{{ item.name }}</a></td>
         <td class="num">{{ item.stock|number }}</td>
