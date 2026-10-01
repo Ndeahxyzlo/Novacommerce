@@ -10,7 +10,7 @@ from ..extensions import db
 from ..forms import EmptyForm
 from ..ml import demand
 from ..models import DemandForecast, Inventory, Order, OrderItem, Product
-from ..services import analytics, etl
+from ..services import analytics, etl, purchasing
 from ..services.security import owner_required
 from ..utils import utcnow
 
@@ -159,6 +159,25 @@ def sales():
         total_revenue=total_revenue,
         total_margin=total_margin,
     )
+
+
+def parse_amount(value):
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return None
+    if amount < 0 or amount != amount or amount == float("inf"):
+        return None
+    return amount
+
+
+@bp.route("/compras")
+@owner_required
+def purchases():
+    budget = parse_amount(request.args.get("presupuesto"))
+    capacity = parse_amount(request.args.get("capacidad"))
+    plan = purchasing.purchase_plan(current_user.company_id, budget, capacity)
+    return render_template("reports/purchases.html", plan=plan, custom=budget is not None or capacity is not None)
 
 
 @bp.route("/ml")

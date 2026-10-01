@@ -128,6 +128,27 @@ def register_cli(app):
             for cid, metrics in demand.run_all_companies().items():
                 click.echo("Empresa {}: {}".format(cid, metrics))
 
+    @app.cli.command("plan-compras")
+    @click.option("--company-id", type=int, required=True)
+    @click.option("--presupuesto", type=float, default=None)
+    @click.option("--capacidad", type=float, default=None)
+    @with_appcontext
+    def plan_compras(company_id, presupuesto, capacidad):
+        from .services import purchasing
+
+        plan = purchasing.purchase_plan(company_id, presupuesto, capacidad)
+        if plan["status"] != "ok":
+            click.echo("Sin productos por reponer.")
+            return
+        click.echo("Presupuesto {:,.0f}  Capacidad {:,.0f}  Variables {}".format(plan["budget"], plan["capacity"], plan["variables"]))
+        for item in plan["items"]:
+            if item["quantity"]:
+                click.echo("{:<12} {:<40} pedir {:>5}  costo {:>10,.0f}  margen {:>10,.0f}".format(item["sku"], item["name"][:40], item["quantity"], item["cost"], item["margin"]))
+        totals = plan["totals"]
+        click.echo("Inversion {:,.0f}  Unidades {}  Margen {:,.0f}".format(totals["cost"], totals["units"], totals["margin"]))
+        click.echo("Precio sombra presupuesto {:.4f}  capacidad {:.2f}".format(plan["shadow"]["budget"], plan["shadow"]["capacity"]))
+        click.echo("Pivotes {}  Vertice verificado por eliminacion: {}".format(plan["pivots"], "si" if plan["verified"] else "no"))
+
     @app.cli.command("train-anomaly")
     @with_appcontext
     def train_anomaly():

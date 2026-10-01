@@ -52,4 +52,4 @@ Resultado de `flask dw-verify`: **30 de 30 controles aprobados.**
 - Propagacion de cambios: cancelar una orden y correr el ETL actualiza el estado en el hecho.
 - Auditoria: `dw.audit_log` registra cada carga (por ejemplo, 72.078 filas insertadas en `fact_ventas`).
 - Seguridad por rol: ver `evidencias/seguridad_acceso.txt`.
-- Suite de pruebas: 65 pruebas, todas pasan.
+- Suite de pruebas: 79 pruebas, todas pasan.

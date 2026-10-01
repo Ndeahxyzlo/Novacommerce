@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Plan de compras{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Plan de compras</h1>
+    <p class="muted">Programación lineal resuelta con el método simplex: qué reponer cuando el presupuesto y la bodega no alcanzan para pedir todo.</p>
+  </div>
+</div>
+<form method="get" class="filters">
+  <input class="input" type="number" min="0" step="1" name="presupuesto" placeholder="Presupuesto" value="{{ plan.budget|int if custom else '' }}">
+  <input class="input" type="number" min="0" step="1" name="capacidad" placeholder="Capacidad (unidades)" value="{{ plan.capacity|int if custom else '' }}">
+  <button class="btn btn-primary" type="submit">Calcular</button>
+  <a class="btn" href="{{ url_for('reports.purchases') }}">Valores por defecto</a>
+</form>
+{% if plan.status == 'sin_candidatos' %}
+<div class="card empty">Ningún producto está en o por debajo de su punto de reorden. Ejecuta el pronóstico de demanda si todavía no lo has hecho.</div>
+{% else %}
+<div class="grid grid-4">
+  <div class="card stat"><span class="label">Margen esperado del plan</span><span class="value">{{ plan.totals.margin|money }}</span><span class="note">sin restricciones: {{ plan.unrestricted.margin|money }}</span></div>
+  <div class="card stat"><span class="label">Inversión</span><span class="value">{{ plan.totals.cost|money }}</span><span class="note">presupuesto: {{ plan.budget|money }}</span></div>
+  <div class="card stat"><span class="label">Unidades a pedir</span><span class="value">{{ plan.totals.units|number }}</span><span class="note">capacidad: {{ plan.capacity|number }}</span></div>
+  <div class="card stat"><span class="label">Productos a reponer</span><span class="value">{{ plan['items']|selectattr('quantity')|list|length|number }}</span><span class="note">de {{ plan.variables|number }} candidatos</span></div>
+</div>
+<div class="card dashboard-row">
+  <h2>Lectura del resultado</h2>
+  <p>El modelo maximiza el margen (precio menos costo) de lo que se pide, sujeto al presupuesto, a la capacidad de bodega y a que ningún producto supere su cantidad económica de pedido (EOQ).</p>
+  <ul>
+    <li>Presupuesto: {% if plan.binding.budget %}limita el plan. Un peso más de presupuesto agrega {{ plan.shadow.budget|decimal(3) }} de margen (precio sombra).{% else %}no limita el plan; sobra {{ plan.slack.budget|money }}.{% endif %}</li>
+    <li>Capacidad: {% if plan.binding.capacity %}limita el plan. Una unidad más de espacio agrega {{ plan.shadow.capacity|money }} de margen (precio sombra).{% else %}no limita el plan; sobran {{ plan.slack.capacity|number }} unidades.{% endif %}</li>
+    <li>Simplex: {{ plan.pivots|number }} pivotes. El vértice óptimo {% if plan.verified %}se verificó resolviendo por eliminación el sistema de {{ plan.active_constraints|number }} restricciones activas.{% else %}no se pudo verificar por eliminación.{% endif %}</li>
+  </ul>
+</div>
+<div class="table-wrap dashboard-row">
+  <table>
+    <thead>
+      <tr><th>SKU</th><th>Producto</th><th class="num">Stock</th><th class="num">Reorden</th><th class="num">EOQ</th><th class="num">Costo unit.</th><th class="num">Margen unit.</th><th class="num">Pedir</th><th class="num">Inversión</th></tr>
+    </thead>
+    <tbody>
+      {% for item in plan['items'] %}
+      <tr>
+        <td>{{ item.sku }}</td>
+        <td><a href="{{ url_for('products.view', product_id=item.product_id) }}">{{ item.name }}</a></td>
+        <td class="num">{{ item.stock|number }}</td>
+        <td class="num">{{ item.reorder_point|number }}</td>
+        <td class="num">{{ item.eoq|number }}</td>
+        <td class="num">{{ item.cost|money }}</td>
+        <td class="num">{{ item.margin|money }}</td>
+        <td class="num">{% if item.quantity %}<strong>{{ item.quantity|number }}</strong>{% else %}<span class="muted">0</span>{% endif %}</td>
+        <td class="num">{{ (item.quantity * item.cost)|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

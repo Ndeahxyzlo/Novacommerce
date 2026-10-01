@@ -128,6 +128,20 @@ def train_model(features):
     )
     residual_std = residuals.groupby("product_id")["residual"].std().fillna(0.0).to_dict()
 
+    metrics = {
+        "trained": True,
+        "rows_train": int(len(train)),
+        "rows_validation": int(len(valid)),
+        "mae": round(mae, 4),
+        "rmse": round(rmse, 4),
+        "baseline_mae": round(baseline_mae, 4),
+        "improvement_pct": round(100.0 * (baseline_mae - mae) / baseline_mae, 2) if baseline_mae > 0 else 0.0,
+    }
+    if mae >= baseline_mae:
+        metrics["trained"] = False
+        metrics["reason"] = "el modelo no supera la linea base"
+        return None, metrics
+
     final = HistGradientBoostingRegressor(
         loss="poisson",
         learning_rate=0.06,
@@ -138,16 +152,6 @@ def train_model(features):
         random_state=42,
     )
     final.fit(ready[FEATURES], ready["units"])
-
-    metrics = {
-        "trained": True,
-        "rows_train": int(len(train)),
-        "rows_validation": int(len(valid)),
-        "mae": round(mae, 4),
-        "rmse": round(rmse, 4),
-        "baseline_mae": round(baseline_mae, 4),
-        "improvement_pct": round(100.0 * (baseline_mae - mae) / baseline_mae, 2) if baseline_mae > 0 else 0.0,
-    }
     return {"model": final, "residual_std": residual_std}, metrics
 
 

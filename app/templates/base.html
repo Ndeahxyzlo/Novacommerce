@@ -25,6 +25,7 @@
       <a href="{{ url_for('reports.dashboard') }}" class="{{ 'active' if endpoint == 'reports.dashboard' }}">Resumen</a>
       <a href="{{ url_for('reports.sales') }}" class="{{ 'active' if endpoint == 'reports.sales' }}">Ventas</a>
       <a href="{{ url_for('reports.inventory') }}" class="{{ 'active' if endpoint == 'reports.inventory' }}">Inventario</a>
+      <a href="{{ url_for('reports.purchases') }}" class="{{ 'active' if endpoint == 'reports.purchases' }}">Compras</a>
       <a href="{{ url_for('reports.olap') }}" class="{{ 'active' if endpoint == 'reports.olap' }}">Análisis OLAP</a>
       <a href="{{ url_for('reports.ml') }}" class="{{ 'active' if endpoint.startswith('reports.ml') }}">Demanda</a>
       <span class="nav-title">Cuenta</span>
