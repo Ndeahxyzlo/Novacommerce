@@ -50,7 +50,8 @@ Abre http://127.0.0.1:5000.
 - etl [--full]: carga incremental o completa de la bodega desde la base operativa.
 - ml-run: entrena pronostico de demanda y recalcula punto de reorden, stock de seguridad y EOQ.
 - train-anomaly: entrena el modelo de anomalias de acceso.
-- plan-compras: plan de compras optimo con simplex (--company-id, --presupuesto, --capacidad); tambien disponible en /reportes/compras.
+- plan-amenazas: simulacion de escenarios de amenazas con programacion lineal y simplex (--modo clase|ampliado, --servidores, --analistas); tambien disponible para el administrador en /admin/simulaciones.
+- plan-compras: plan de compras optimo con simplex como complemento (--company-id, --presupuesto, --capacidad); tambien disponible en /reportes/compras.
 - export-schema: escribe database/schema.sql.
 - dw-verify [--output archivo.json]: 30 controles de integridad y reconciliacion de la bodega.
 - dw-dump: volcado del esquema dw en database/dw_carga.sql.gz.
@@ -70,7 +71,7 @@ Contrasena de todas: Demo12345x. Cambiala o no uses el seed en produccion.
 - app/routes: blueprints por area (auth, panel, tienda, admin, API).
 - app/ml: demanda (HistGradientBoosting con perdida poisson y linea base) y anomalias (regresion logistica).
 - warehouse/medallion.sql (capas bronze y silver) y warehouse/schema.sql (capa oro: esquema estrella dw con SCD Tipo 2 en producto y cliente y hechos de ventas e inventario).
-- tests: 79 pruebas (concurrencia sin sobreventa, aislamiento entre empresas, CSRF, bloqueo de login, ETL, ML, render de paginas).
+- tests: 89 pruebas (concurrencia sin sobreventa, aislamiento entre empresas, CSRF, bloqueo de login, ETL, ML, render de paginas).
 
 ## Seguridad
 

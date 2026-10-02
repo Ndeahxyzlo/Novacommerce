@@ -6,9 +6,10 @@ from ..extensions import db
 from ..forms import EmptyForm
 from ..ml import anomaly, demand
 from ..models import AccessLog, Company, MlRun, Order, Product, User
-from ..services import analytics, etl
+from ..services import analytics, etl, threats
 from ..services.security import admin_required
 from ..services.tenancy import paginate
+from ..utils import parse_amount
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -86,6 +87,30 @@ def security():
     risky = anomaly.score_recent()
     run = db.session.scalar(select(MlRun).where(MlRun.kind == "anomaly").order_by(MlRun.id.desc()).limit(1))
     return render_template("admin/security.html", recent=recent, risky=risky, run=run, action_form=EmptyForm())
+
+
+@bp.route("/simulaciones")
+@admin_required
+def threat_simulations():
+    mode = request.args.get("modo", threats.MODE_CLASS)
+    if mode not in threats.MODES:
+        mode = threats.MODE_CLASS
+    servers = parse_amount(request.args.get("servidores"))
+    analysts = parse_amount(request.args.get("analistas"))
+    plan = threats.threat_plan(mode, servers, analysts)
+    observed = {
+        "events": db.session.scalar(select(func.count(AccessLog.id))),
+        "attacks": db.session.scalar(select(func.count(AccessLog.id)).where(AccessLog.label == 1)),
+        "attacker_ips": db.session.scalar(select(func.count(func.distinct(AccessLog.ip))).where(AccessLog.label == 1)),
+    }
+    return render_template(
+        "admin/threats.html",
+        plan=plan,
+        mode=mode,
+        custom=servers is not None or analysts is not None,
+        observed=observed,
+        modes=threats.MODES,
+    )
 
 
 @bp.route("/seguridad/entrenar", methods=["POST"])

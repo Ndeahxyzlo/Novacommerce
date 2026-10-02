@@ -12,7 +12,7 @@ from ..ml import demand
 from ..models import DemandForecast, Inventory, Order, OrderItem, Product
 from ..services import analytics, etl, purchasing
 from ..services.security import owner_required
-from ..utils import utcnow
+from ..utils import parse_amount, utcnow
 
 bp = Blueprint("reports", __name__, url_prefix="/reportes")
 
@@ -159,16 +159,6 @@ def sales():
         total_revenue=total_revenue,
         total_margin=total_margin,
     )
-
-
-def parse_amount(value):
-    try:
-        amount = float(value)
-    except (TypeError, ValueError):
-        return None
-    if amount < 0 or amount != amount or amount == float("inf"):
-        return None
-    return amount
 
 
 @bp.route("/compras")

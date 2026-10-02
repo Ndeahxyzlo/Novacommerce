@@ -44,3 +44,13 @@ def format_money(value, currency="COP"):
     if currency == "COP":
         return "$ {:,.0f}".format(amount).replace(",", ".")
     return "{:,.2f} {}".format(amount, currency)
+
+
+def parse_amount(value):
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return None
+    if amount < 0 or amount != amount or amount == float("inf"):
+        return None
+    return amount

@@ -35,6 +35,7 @@
       <a href="{{ url_for('admin.companies') }}" class="{{ 'active' if endpoint in ('admin.companies', 'admin.toggle_company') }}">Empresas</a>
       <a href="{{ url_for('admin.users') }}" class="{{ 'active' if endpoint in ('admin.users', 'admin.toggle_user') }}">Usuarios</a>
       <a href="{{ url_for('admin.security') }}" class="{{ 'active' if endpoint.startswith('admin.security') or endpoint == 'admin.train_anomaly' }}">Seguridad</a>
+      <a href="{{ url_for('admin.threat_simulations') }}" class="{{ 'active' if endpoint == 'admin.threat_simulations' }}">Simulación de amenazas</a>
       {% endif %}
     </nav>
     <div class="sidebar-foot">

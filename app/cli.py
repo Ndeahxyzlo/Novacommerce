@@ -149,6 +149,25 @@ def register_cli(app):
         click.echo("Precio sombra presupuesto {:.4f}  capacidad {:.2f}".format(plan["shadow"]["budget"], plan["shadow"]["capacity"]))
         click.echo("Pivotes {}  Vertice verificado por eliminacion: {}".format(plan["pivots"], "si" if plan["verified"] else "no"))
 
+    @app.cli.command("plan-amenazas")
+    @click.option("--modo", type=click.Choice(["clase", "ampliado"]), default="clase", show_default=True)
+    @click.option("--servidores", type=float, default=None, help="Horas de servidores virtuales disponibles")
+    @click.option("--analistas", type=float, default=None, help="Horas de analistas del Red Team disponibles")
+    @with_appcontext
+    def plan_amenazas(modo, servidores, analistas):
+        from .services import threats
+
+        plan = threats.threat_plan(modo, servidores, analistas)
+        if plan["status"] != "ok":
+            click.echo("Las horas indicadas no alcanzan para la cobertura minima.")
+            return
+        click.echo("Modo {}  Servidores {:g} h  Analistas {:g} h".format(modo, plan["servers"], plan["analysts"]))
+        for item in plan["scenarios"]:
+            click.echo("{:<3} {:<48} simulaciones {:>3}  puntos {:g}".format(item["var"], item["name"], item["quantity"], item["points"]))
+        click.echo("Indice de resiliencia Z = {:g} (relajacion lineal {:.2f})".format(plan["totals"]["points"], plan["objective_lp"]))
+        click.echo("Precio sombra servidores {:.2f}  analistas {:.2f}".format(plan["shadow"]["servers"], plan["shadow"]["analysts"]))
+        click.echo("Pivotes {}  Vertice verificado por eliminacion: {}".format(plan["pivots"], "si" if plan["verified"] else "no"))
+
     @app.cli.command("train-anomaly")
     @with_appcontext
     def train_anomaly():
