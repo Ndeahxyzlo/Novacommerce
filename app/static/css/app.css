@@ -1,13 +1,16 @@
 :root {
-  --bg: #f5f6f8;
+  color-scheme: light;
+  --bg: #f6f7f3;
   --surface: #ffffff;
-  --surface-2: #eff1f5;
-  --text: #151922;
-  --muted: #596274;
-  --border: #e1e4ea;
-  --accent: #2f6df6;
-  --accent-strong: #1e54cf;
-  --accent-soft: #e7eeff;
+  --surface-2: #eef0e9;
+  --text: #1f261f;
+  --muted: #5d675c;
+  --border: #dde1d5;
+  --accent: #3d8553;
+  --accent-hover: #347247;
+  --accent-text: #2f6b42;
+  --accent-soft: #e3eee6;
+  --on-accent: #ffffff;
   --success: #12805c;
   --success-soft: #dcf4ea;
   --warning: #9a5b00;
@@ -16,22 +19,25 @@
   --danger-soft: #fde3e5;
   --info: #1f6fa8;
   --info-soft: #dff0fb;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 6px 18px rgba(16, 24, 40, 0.05);
-  --radius: 12px;
+  --radius: 8px;
+  --radius-sm: 6px;
   --sidebar: 248px;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 [data-theme="dark"] {
-  --bg: #0e1116;
-  --surface: #171b22;
-  --surface-2: #1f242d;
-  --text: #e8ebf0;
-  --muted: #9aa3b2;
-  --border: #2a303a;
-  --accent: #6b98ff;
-  --accent-strong: #8db0ff;
-  --accent-soft: #1c2740;
+  color-scheme: dark;
+  --bg: #121512;
+  --surface: #1a1f1a;
+  --surface-2: #232923;
+  --text: #e6ebe4;
+  --muted: #9ba597;
+  --border: #2c332b;
+  --accent: #3d8553;
+  --accent-hover: #347247;
+  --accent-text: #86c99b;
+  --accent-soft: #1d2a20;
+  --on-accent: #ffffff;
   --success: #46c69a;
   --success-soft: #12302a;
   --warning: #f0b45a;
@@ -40,15 +46,10 @@
   --danger-soft: #3a1a1f;
   --info: #67b6ea;
   --info-soft: #14283a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 * {
   box-sizing: border-box;
-}
-
-html {
-  color-scheme: light dark;
 }
 
 body {
@@ -62,7 +63,7 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
 }
 
@@ -150,11 +151,11 @@ p {
 .brand-mark {
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--accent), #7a5cf0);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
   display: inline-grid;
   place-items: center;
-  color: #ffffff;
+  color: var(--on-accent);
   font-weight: 800;
   font-size: 0.95rem;
 }
@@ -179,7 +180,7 @@ p {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.5rem 0.65rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-weight: 500;
 }
@@ -191,7 +192,7 @@ p {
 
 .nav a.active {
   background: var(--accent-soft);
-  color: var(--accent-strong);
+  color: var(--accent-text);
 }
 
 .sidebar-foot {
@@ -266,7 +267,6 @@ p {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 1.15rem 1.25rem;
 }
 
@@ -321,14 +321,14 @@ p {
   justify-content: center;
   gap: 0.4rem;
   padding: 0.5rem 0.95rem;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: none;
 }
 
 .btn:hover {
@@ -339,12 +339,12 @@ p {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #ffffff;
+  color: var(--on-accent);
 }
 
 .btn-primary:hover {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn-danger {
@@ -390,7 +390,7 @@ select,
 textarea {
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
@@ -519,7 +519,7 @@ th.num {
 
 .badge-shipped {
   background: var(--accent-soft);
-  color: var(--accent-strong);
+  color: var(--accent-text);
 }
 
 .badge-delivered,
@@ -548,7 +548,7 @@ th.num {
 
 .flash {
   padding: 0.7rem 0.95rem;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
 }
@@ -617,7 +617,7 @@ th.num {
 }
 
 .chart .bar:hover {
-  fill: var(--accent-strong);
+  fill: var(--accent-hover);
 }
 
 .chart .line {
@@ -710,11 +710,11 @@ th.num {
 
 .product-card .thumb {
   aspect-ratio: 4 / 3;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent-soft), var(--surface-2));
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
   display: grid;
   place-items: center;
-  color: var(--accent-strong);
+  color: var(--accent-text);
   font-weight: 700;
   font-size: 1.6rem;
 }
@@ -751,7 +751,7 @@ th.num {
 .icon-btn {
   background: none;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.3rem 0.55rem;
   color: var(--text);
   cursor: pointer;
