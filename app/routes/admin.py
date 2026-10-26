@@ -5,7 +5,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..extensions import db
 from ..forms import EmptyForm
-from ..ml import anomaly, demand
 from ..models import AccessLog, Company, MlRun, Order, Product, User
 from ..services import analytics, consultas, etl, io_extra, threats
 from ..services.security import admin_required
@@ -85,8 +84,14 @@ def toggle_user(user_id):
 @admin_required
 def security():
     recent = db.session.scalars(select(AccessLog).order_by(AccessLog.created_at.desc()).limit(30)).all()
-    risky = anomaly.score_recent()
-    run = db.session.scalar(select(MlRun).where(MlRun.kind == "anomaly").order_by(MlRun.id.desc()).limit(1))
+    try:
+        from ..ml import anomaly
+    except ImportError:
+        risky = []
+        flash("El modelo de accesos con ML está disponible solo en ejecución local.", "info")
+    else:
+        risky = anomaly.score_recent()
+    run =db.session.scalar(select(MlRun).where(MlRun.kind == "anomaly").order_by(MlRun.id.desc()).limit(1))
     return render_template("admin/security.html", recent=recent, risky=risky, run=run, action_form=EmptyForm())
 
 
@@ -119,6 +124,11 @@ def threat_simulations():
 def train_anomaly():
     form = EmptyForm()
     if form.validate_on_submit():
+        try:
+            from ..ml import anomaly
+        except ImportError:
+            flash("El entrenamiento con ML está disponible solo en ejecución local.", "info")
+            return redirect(url_for("admin.security"))
         metrics = anomaly.train()
         if metrics.get("trained"):
             flash("Modelo de accesos entrenado. Exactitud {}.".format(metrics["accuracy"]), "success")
@@ -133,6 +143,11 @@ def pipeline():
     form = EmptyForm()
     if form.validate_on_submit():
         etl.run_etl()
+        try:
+            from ..ml import demand
+        except ImportError:
+            flash("ETL ejecutado. El pronóstico con ML está disponible solo en ejecución local.", "info")
+            return redirect(url_for("admin.dashboard"))
         summary = demand.run_all_companies()
         flash("Pipeline completo para {} empresas.".format(len(summary)), "success")
     return redirect(url_for("admin.dashboard"))

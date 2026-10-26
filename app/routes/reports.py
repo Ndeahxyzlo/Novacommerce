@@ -8,8 +8,7 @@ from sqlalchemy import func, select
 
 from ..extensions import db
 from ..forms import EmptyForm
-from ..ml import demand
-from ..models import DemandForecast, Inventory, Order, OrderItem, Product
+from ..models import DemandForecast, Inventory, MlRun, Order, OrderItem, Product
 from ..services import analytics, etl, purchasing
 from ..services.security import owner_required
 from ..utils import parse_amount, utcnow
@@ -174,8 +173,10 @@ def purchases():
 @owner_required
 def ml():
     company_id = current_user.company_id
-    run = demand.latest_run(company_id)
-    top = db.session.execute(
+    run = db.session.scalar(
+        select(MlRun).where(MlRun.company_id == company_id, MlRun.kind == "demand").order_by(MlRun.id.desc()).limit(1)
+    )
+    top =db.session.execute(
         select(Product.name, Product.sku, func.sum(DemandForecast.predicted_units).label("units"), Inventory.quantity, Inventory.reorder_point, Inventory.eoq)
         .join(Product, Product.id == DemandForecast.product_id)
         .join(Inventory, Inventory.product_id == Product.id)
@@ -192,6 +193,11 @@ def ml():
 def ml_run():
     form = EmptyForm()
     if form.validate_on_submit():
+        try:
+            from ..ml import demand
+        except ImportError:
+            flash("El pronóstico con ML está disponible solo en ejecución local.", "info")
+            return redirect(url_for("reports.ml"))
         metrics = demand.run_company_pipeline(current_user.company_id)
         if metrics.get("trained"):
             flash("Modelo entrenado. MAE {} frente a {} de la línea base.".format(metrics["mae"], metrics["baseline_mae"]), "success")

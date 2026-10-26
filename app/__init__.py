@@ -118,7 +118,8 @@ def register_filters(app):
 
     @app.template_filter("product_image")
     def product_image_filter(product):
-        words = (product.name or "").split()
+        name = product.get("name") if isinstance(product, dict) else getattr(product, "name", None)
+        words = (name or "").split()
         for end in (len(words), len(words) - 1):
             if end < 1:
                 continue
