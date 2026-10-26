@@ -42,9 +42,10 @@
 </div>
 {% endmacro %}
 
-{% macro tile(seed, letter, tag=None, tag_class='', caption=None) %}
-<div class="tile tone-{{ seed % 6 }}">
-  <span class="tile-letter" aria-hidden="true">{{ letter|initials }}</span>
+{% macro tile(seed, letter, tag=None, tag_class='', caption=None, image=None) %}
+<div class="tile tone-{{ seed % 6 }}{{ ' has-image' if image }}">
+  {% if image %}<img class="tile-img" src="{{ image }}" alt="{{ letter }}" loading="lazy">
+  {% else %}<span class="tile-letter" aria-hidden="true">{{ letter|initials }}</span>{% endif %}
   {% if tag %}<span class="tile-tag {{ tag_class }}">{{ tag }}</span>{% endif %}
   {% if caption %}<span class="tile-caption">{{ caption }}</span>{% endif %}
 </div>
@@ -58,7 +59,7 @@
 {% set low = not out and inventory.quantity <= 5 %}
 <article class="product-card">
   <a href="{{ url_for('store.product', product_id=product.id) }}">
-    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue') }}
+    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue', image=product|product_image) }}
     <span class="product-meta">{{ store_name or product.category }}</span>
     <span class="product-name">{{ product.name }}</span>
   </a>

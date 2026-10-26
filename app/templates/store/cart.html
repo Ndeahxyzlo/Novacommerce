@@ -17,7 +17,7 @@
     <h2>{{ group.company.name }}</h2>
     {% for line in group.lines %}
     <div class="cart-line">
-      <a href="{{ url_for('store.product', product_id=line.product.id) }}" tabindex="-1" aria-hidden="true">{{ tile(line.product.id, line.product.name) }}</a>
+      <a href="{{ url_for('store.product', product_id=line.product.id) }}" tabindex="-1" aria-hidden="true">{{ tile(line.product.id, line.product.name, image=line.product|product_image) }}</a>
       <div class="cart-line-info">
         <a href="{{ url_for('store.product', product_id=line.product.id) }}">{{ line.product.name }}</a>
         <span class="muted small">{{ line.product.price|money }} c/u</span>

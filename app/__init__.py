@@ -3,13 +3,13 @@ import logging
 import os
 from datetime import date
 
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 from flask_wtf.csrf import CSRFError
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import config_by_name
 from .extensions import csrf, db, login_manager
-from .utils import format_money
+from .utils import format_money, slugify
 
 CONTENT_SECURITY_POLICY = (
     "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
@@ -115,6 +115,17 @@ def register_filters(app):
     def initials_filter(value):
         words = [word for word in (value or "").split() if len(word) > 2 or word[:1].isupper()]
         return "".join(word[0] for word in words[:2]).upper() or (value or "?")[:1].upper()
+
+    @app.template_filter("product_image")
+    def product_image_filter(product):
+        words = (product.name or "").split()
+        for end in (len(words), len(words) - 1):
+            if end < 1:
+                continue
+            filename = "img/productos/{}.jpg".format(slugify(" ".join(words[:end])))
+            if os.path.isfile(os.path.join(app.static_folder, filename)):
+                return url_for("static", filename=filename)
+        return None
 
     @app.template_filter("datefmt")
     def date_filter(value):

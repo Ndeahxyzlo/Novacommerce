@@ -12,7 +12,7 @@
 {% set low = not out and inventory.quantity <= 5 %}
 <div class="pdp">
   <div class="pdp-media">
-    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue') }}
+    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue', image=product|product_image) }}
   </div>
   <div class="pdp-info">
     <a class="eyebrow" href="{{ url_for('store.store_detail', slug=company.slug) }}">{{ company.name }}</a>
