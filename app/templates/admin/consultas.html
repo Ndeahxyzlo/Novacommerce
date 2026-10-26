@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import post_button %}
+{% block title %}Consultas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Consultas de la bodega</h1>
+    <p class="muted">Consultas de cubo (ROLLUP, CUBE y GROUPING SETS) sobre el esquema estrella, con la versión de producto y cliente vigente en la fecha de cada venta. Todas se ejecutan en una transacción de solo lectura con parámetros enlazados.</p>
+  </div>
+</div>
+{% if not listo %}
+<div class="card empty">La bodega de datos aún no está cargada. Ejecuta el ETL desde el resumen de administración.</div>
+{% else %}
+<form method="get" class="filters">
+  <select class="input" name="consulta" aria-label="Consulta">
+    {% for key, item in catalogo.items() %}
+    <option value="{{ key }}" {{ 'selected' if key == clave }}>{{ item.titulo }}</option>
+    {% endfor %}
+  </select>
+  <select class="input" name="empresa" aria-label="Empresa">
+    <option value="">Todas las empresas</option>
+    {% for company in empresas %}
+    <option value="{{ company.id }}" {{ 'selected' if empresa == company.id|string }}>{{ company.name }}</option>
+    {% endfor %}
+  </select>
+  {% if clave == 'detalle' %}
+  <input class="input" type="search" name="q" placeholder="Producto o cliente" value="{{ q }}" maxlength="80">
+  <input class="input" type="date" name="desde" value="{{ desde }}" aria-label="Desde">
+  <input class="input" type="date" name="hasta" value="{{ hasta }}" aria-label="Hasta">
+  {% endif %}
+  <button class="btn btn-primary" type="submit">Ejecutar</button>
+</form>
+{% if clave == 'molap' %}
+<div class="card dashboard-row">
+  <h2>Cubo precalculado</h2>
+  <p class="muted">{{ nota_molap }}</p>
+  <p>Última actualización: <strong>{{ actualizacion or 'aún no se ha creado' }}</strong></p>
+  {{ post_button(url_for('admin.refresh_cube'), 'Actualizar cubo', 'btn btn-primary') }}
+</div>
+{% endif %}
+{% if resultado %}
+<div class="card dashboard-row">
+  <h2>{{ resultado.titulo }}</h2>
+  <p class="muted">{{ resultado.filas|length|number }} filas mostradas en {{ resultado.milisegundos|decimal(1) }} ms{% if resultado.total is not none %}, de {{ resultado.total|number }} en total{% endif %}.</p>
+  <h3>SQL ejecutado</h3>
+  <pre class="sql-block">{{ resultado.sql }}</pre>
+  {% if resultado.parametros %}
+  <p class="muted small">Parámetros enlazados: {% for name, value in resultado.parametros.items() %}{{ name }} = {{ value if value is not none else 'nulo' }}{% if not loop.last %}; {% endif %}{% endfor %}</p>
+  {% endif %}
+  <p><a class="btn btn-sm" href="{{ url_for('admin.queries', consulta=clave, empresa=empresa, q=q, desde=desde, hasta=hasta, formato='csv') }}">Exportar a CSV</a></p>
+  {% if resultado.filas %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>{% for name in resultado.columnas %}<th>{{ name }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in resultado.filas %}
+        <tr>{% for value in row %}<td{% if value is number %} class="num"{% endif %}>{{ value|number if value is number and value is not string else (value if value is not none else '-') }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">La consulta no devolvió filas.</p>
+  {% endif %}
+  {% if clave == 'detalle' and paginas > 1 %}
+  <nav class="pager" aria-label="Paginación">
+    {% if resultado.pagina > 1 %}<a class="btn btn-sm" href="{{ url_for('admin.queries', consulta=clave, empresa=empresa, q=q, desde=desde, hasta=hasta, page=resultado.pagina - 1) }}">Anterior</a>{% endif %}
+    <span class="muted small">Página {{ resultado.pagina }} de {{ paginas }}</span>
+    {% if resultado.pagina < paginas %}<a class="btn btn-sm" href="{{ url_for('admin.queries', consulta=clave, empresa=empresa, q=q, desde=desde, hasta=hasta, page=resultado.pagina + 1) }}">Siguiente</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

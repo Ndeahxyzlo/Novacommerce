@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo cliente{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Nuevo cliente</h1></div>
+{% with cancel_url=url_for('customers.index') %}{% include 'customers/_form.html' %}{% endwith %}
+{% endblock %}

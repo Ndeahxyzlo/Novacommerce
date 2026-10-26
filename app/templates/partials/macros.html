@@ -1,0 +1,88 @@
+{% macro field(f) %}
+<div class="field{% if f.errors %} invalid{% endif %}">
+  {{ f.label(class_="label") }}
+  {{ f(class_="input", **kwargs) }}
+  {% for message in f.errors %}<p class="error">{{ message }}</p>{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro check(f) %}
+<div class="check">
+  {{ f() }}
+  {{ f.label() }}
+</div>
+{% endmacro %}
+
+{% macro post_button(url, label, css="btn", confirm=None) %}
+<form method="post" action="{{ url }}" class="inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="{{ css }}"{% if confirm %} data-confirm="{{ confirm }}"{% endif %}>{{ label }}</button>
+</form>
+{% endmacro %}
+
+{% macro pager(p, endpoint) %}
+{% if p.pages > 1 %}
+<nav class="pager" aria-label="Paginación">
+  {% if p.has_prev %}<a class="btn btn-sm" href="{{ url_for(endpoint, page=p.prev_num, **kwargs) }}">Anterior</a>{% endif %}
+  <span class="muted small">Página {{ p.page }} de {{ p.pages }} ({{ p.total|number }} registros)</span>
+  {% if p.has_next %}<a class="btn btn-sm" href="{{ url_for(endpoint, page=p.next_num, **kwargs) }}">Siguiente</a>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{% macro status_badge(status) %}
+<span class="badge badge-{{ status }}">{{ status|status_label }}</span>
+{% endmacro %}
+
+{% macro stat(label, value, note=None) %}
+<div class="card stat">
+  <span class="label">{{ label }}</span>
+  <span class="value">{{ value }}</span>
+  {% if note %}<span class="note">{{ note }}</span>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro tile(seed, letter, tag=None, tag_class='', caption=None) %}
+<div class="tile tone-{{ seed % 6 }}">
+  <span class="tile-letter" aria-hidden="true">{{ letter|initials }}</span>
+  {% if tag %}<span class="tile-tag {{ tag_class }}">{{ tag }}</span>{% endif %}
+  {% if caption %}<span class="tile-caption">{{ caption }}</span>{% endif %}
+</div>
+{% endmacro %}
+
+
+{% macro heart_icon() %}<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14 1.8 7.8a3.6 3.6 0 0 1 5.1-5.1L8 3.8l1.1-1.1a3.6 3.6 0 0 1 5.1 5.1Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="miter"/></svg>{% endmacro %}
+
+{% macro product_card(product, inventory, quantity_form=None, wished=False, store_name=None, show_actions=True) %}
+{% set out = inventory.quantity <= 0 %}
+{% set low = not out and inventory.quantity <= 5 %}
+<article class="product-card">
+  <a href="{{ url_for('store.product', product_id=product.id) }}">
+    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue') }}
+    <span class="product-meta">{{ store_name or product.category }}</span>
+    <span class="product-name">{{ product.name }}</span>
+  </a>
+  <span class="price">{{ product.price|money }}</span>
+  {% if show_actions %}
+  {% if current_user.is_authenticated and current_user.is_customer %}
+  <div class="card-actions">
+    {% if not out %}
+    <form method="post" action="{{ url_for('store.cart_add', product_id=product.id) }}" class="qty-form">
+      {{ quantity_form.hidden_tag() }}
+      <input class="input" type="number" name="quantity" min="1" max="{{ inventory.quantity }}" value="1" aria-label="Cantidad">
+      <button class="btn btn-primary btn-sm" type="submit">Agregar</button>
+    </form>
+    {% endif %}
+    <form method="post" action="{{ url_for('store.wishlist_toggle', product_id=product.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="heart-btn{{ ' on' if wished }}" type="submit" aria-label="{{ 'Quitar de favoritos' if wished else 'Guardar en favoritos' }}" title="{{ 'Quitar de favoritos' if wished else 'Guardar en favoritos' }}">{{ heart_icon() }}</button>
+    </form>
+  </div>
+  {% elif not current_user.is_authenticated and not out %}
+  <div class="card-actions">
+    <a class="btn btn-sm" href="{{ url_for('auth.login', next=request.full_path) }}">Ingresa para comprar</a>
+  </div>
+  {% endif %}
+  {% endif %}
+</article>
+{% endmacro %}

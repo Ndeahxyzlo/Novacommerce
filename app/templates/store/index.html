@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import tile %}
+{% block title %}Tiendas{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('main.index') }}">Inicio</a><span aria-hidden="true">/</span><span>Tiendas</span></div>
+<div class="section-head">
+  <div>
+    <span class="eyebrow">{{ stores|length }} tiendas activas</span>
+    <h2>Elige una tienda y explora su catálogo</h2>
+  </div>
+</div>
+{% if stores %}
+<div class="store-grid">
+  {% for company, total in stores %}
+  <a class="store-card" href="{{ url_for('store.store_detail', slug=company.slug) }}">
+    {{ tile(company.id + 3, company.name, total|number ~ ' artículos', 'tag-dark', company.city or company.country) }}
+    <h3>{{ company.name }}</h3>
+    <p>{{ company.description or 'Explora el catálogo de esta tienda.' }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">Todavía no hay tiendas publicadas.</div>
+{% endif %}
+{% endblock %}

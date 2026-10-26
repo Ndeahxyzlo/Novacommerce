@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo producto{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Nuevo producto</h1></div>
+{% with show_quantity=true, cancel_url=url_for('products.index') %}{% include 'products/_form.html' %}{% endwith %}
+{% endblock %}

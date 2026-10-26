@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Registrar venta{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Registrar venta</h1>
+    <p class="muted">Venta directa descontando inventario en el momento.</p>
+  </div>
+</div>
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="card">
+    <h2>Productos</h2>
+    <div id="lines"></div>
+    <button type="button" class="btn btn-sm" id="add-line">Agregar línea</button>
+    <template id="line-template">
+      <div class="line-row">
+        <select name="product_id" required>
+          <option value="">Selecciona un producto</option>
+          {% for product in products %}<option value="{{ product.id }}">{{ product.name }} ({{ product.sku }}) - {{ product.price|money }}</option>{% endfor %}
+        </select>
+        <input class="input" type="number" name="quantity" min="1" max="10000" value="1" required>
+        <button type="button" class="btn btn-sm btn-danger" data-remove-line>Quitar</button>
+      </div>
+    </template>
+  </div>
+  <div class="card">
+    <h2>Detalles</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label class="label" for="customer_email">Correo del cliente (opcional)</label>
+        <input class="input" id="customer_email" name="customer_email" type="email" maxlength="255">
+      </div>
+      <div class="field">
+        <label class="label" for="notes">Notas</label>
+        <input class="input" id="notes" name="notes" maxlength="500">
+      </div>
+    </div>
+    <div class="check">
+      <input type="checkbox" id="paid" name="paid" value="1" checked>
+      <label for="paid">Marcar como pagada</label>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Registrar venta</button>
+    <a class="btn" href="{{ url_for('orders.index') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import stat %}
+{% block title %}Decisiones de seguridad{% endblock %}
+{% macro limite(valor) %}{{ 'sin límite' if valor is none else valor|decimal(1) }}{% endmacro %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Decisiones de seguridad</h1>
+    <p class="muted">Reúne los cinco requisitos de Investigación de Operaciones: optimización de recursos, simulación, análisis de vulnerabilidades, flujo de trabajo seguro y apoyo a la decisión. Los datos marcados como supuesto de demostración no provienen de mediciones reales.</p>
+  </div>
+</div>
+<form method="get" class="filters">
+  <input class="input" type="number" min="0" step="1" name="presupuesto" placeholder="Presupuesto (millones COP)" value="{{ plan.presupuesto|int if personalizado else '' }}">
+  <input class="input" type="number" min="0" step="1" name="personal" placeholder="Horas de personal" value="{{ plan.horas_personal|int if personalizado else '' }}">
+  <input class="input" type="number" min="0" step="1" name="respuesta" placeholder="Horas de respuesta" value="{{ plan.horas_respuesta|int if personalizado else '' }}">
+  <button class="btn btn-primary" type="submit">Calcular</button>
+  <a class="btn" href="{{ url_for('admin.decisions') }}">Valores por defecto</a>
+</form>
+
+<div class="grid grid-4">
+  {{ stat('Reducción de riesgo lograda', plan.reduccion_total|decimal(1), 'de ' ~ plan.riesgo_inherente_total ~ ' puntos de riesgo inherente') }}
+  {{ stat('Simulaciones que caben en las horas', ((simulacion.probabilidad_cabe * 100)|decimal(1) ~ ' %') if simulacion else '-', 'Monte Carlo') }}
+  {{ stat('Flujo máximo de órdenes', flujo.maximo, 'con controles obligatorios: ' ~ flujo.maximo_controlado) }}
+  {{ stat('Riesgos sobre el umbral', riesgos|selectattr('supera_umbral')|list|length, 'umbral: ' ~ umbral ~ ' de 25') }}
+</div>
+
+<div class="card dashboard-row">
+  <h2>1. Optimización de recursos de seguridad</h2>
+  <p>Programación lineal resuelta con simplex: qué fracción de cada control implementar para maximizar la reducción de riesgo, sujeta a presupuesto, horas de personal y horas de respuesta. Cada fracción está entre 0 y 1. Origen de los costos y las horas: {{ plan.fuente }}.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Control</th><th class="num">Costo (millones COP)</th><th class="num">Horas de personal</th><th class="num">Horas de respuesta</th><th class="num">Reducción de riesgo</th><th class="num">Fracción a implementar</th></tr></thead>
+      <tbody>
+        {% for control in plan.controles %}
+        <tr>
+          <td>{{ control.nombre }}</td>
+          <td class="num">{{ control.costo|number }}</td>
+          <td class="num">{{ control.horas_personal|number }}</td>
+          <td class="num">{{ control.horas_respuesta|number }}</td>
+          <td class="num">{{ control.reduccion|number }}</td>
+          <td class="num"><strong>{{ (control.fraccion * 100)|decimal(0) }} %</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <h3>Uso de recursos y precios sombra</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Recurso</th><th class="num">Disponible</th><th class="num">Usado</th><th class="num">Holgura</th><th class="num">Precio sombra</th></tr></thead>
+      <tbody>
+        {% for recurso in plan.recursos %}
+        <tr>
+          <td>{{ recurso.nombre }}</td>
+          <td class="num">{{ recurso.valor|decimal(1) }}</td>
+          <td class="num">{{ recurso.usado|decimal(1) }}</td>
+          <td class="num">{{ recurso.holgura|decimal(1) }}</td>
+          <td class="num">{{ recurso.precio_sombra|decimal(2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">El precio sombra indica cuántos puntos de riesgo se reducirían por cada unidad adicional del recurso. Un precio de cero significa que el recurso no es el que limita el plan.</p>
+</div>
+
+<div class="card dashboard-row">
+  <h2>2. Simulación de escenarios (Monte Carlo)</h2>
+  {% if simulacion %}
+  <p>Se repite el plan óptimo de simulaciones de amenazas {{ simulacion.corridas|number }} veces con semilla fija ({{ simulacion.semilla }}). Las horas y los puntos de cada simulación varían con distribución triangular. Los rangos son supuesto de demostración.</p>
+  <div class="grid grid-4">
+    {{ stat('Probabilidad de que el plan quepa', (simulacion.probabilidad_cabe * 100)|decimal(1) ~ ' %', simulacion.horas_servidores|number ~ ' h de servidor y ' ~ simulacion.horas_analistas|number ~ ' h de analista') }}
+    {{ stat('Resiliencia percentil 5', simulacion.resiliencia_p5|decimal(1)) }}
+    {{ stat('Resiliencia mediana', simulacion.resiliencia_p50|decimal(1), 'plan determinista: ' ~ simulacion.plan_optimo|number) }}
+    {{ stat('Resiliencia percentil 95', simulacion.resiliencia_p95|decimal(1)) }}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Variable</th><th>Distribución</th><th class="num">Mínimo (veces el valor base)</th><th class="num">Máximo (veces el valor base)</th><th>Origen</th></tr></thead>
+      <tbody>
+        {% for item in simulacion.supuestos %}
+        <tr><td>{{ item.variable }}</td><td>{{ item.distribucion }}</td><td class="num">{{ item.minimo|decimal(1) }}</td><td class="num">{{ item.maximo|decimal(1) }}</td><td>{{ item.fuente }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No hay un plan factible para simular.</p>
+  {% endif %}
+</div>
+
+<div class="card dashboard-row">
+  <h2>3. Análisis cuantitativo de vulnerabilidades</h2>
+  <p>Riesgo = probabilidad x impacto, ambos en escala de 1 a 5. El riesgo residual es el que queda al aplicar el control asignado. Se resaltan los riesgos iguales o superiores a {{ umbral }}.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Id</th><th>Vulnerabilidad</th><th class="num">Probabilidad</th><th class="num">Impacto</th><th class="num">Riesgo inherente</th><th class="num">Riesgo residual</th><th>Fuente</th></tr></thead>
+      <tbody>
+        {% for fila in riesgos %}
+        <tr>
+          <td>{{ fila.id }}</td>
+          <td>{{ fila.nombre }}</td>
+          <td class="num">{{ fila.probabilidad }}</td>
+          <td class="num">{{ fila.impacto }}</td>
+          <td class="num">{% if fila.supera_umbral %}<strong>{{ fila.inherente }}</strong>{% else %}{{ fila.inherente }}{% endif %}</td>
+          <td class="num">{% if fila.residual_supera_umbral %}<strong>{{ fila.residual }}</strong>{% else %}{{ fila.residual }}{% endif %}</td>
+          <td>{{ fila.fuente }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card dashboard-row">
+  <h2>4. Flujo de trabajo seguro de una orden</h2>
+  <p>La orden pasa por creación, antifraude, aprobación de pago, pago, aprobación de despacho, envío y entrega (estados en {{ flujo.estados }}). Las capacidades son órdenes por hora y las aprobaciones son {{ flujo.fuente }}. Hay dos rutas alternas sin control que el modelo debe evitar.</p>
+  <div class="grid grid-4">
+    {{ stat('Flujo máximo (Edmonds-Karp)', flujo.maximo, 'con todas las rutas') }}
+    {{ stat('Flujo máximo solo con controles', flujo.maximo_controlado, 'sin rutas alternas') }}
+    {{ stat('Costo mínimo para ' ~ flujo.requerido ~ ' órdenes', flujo.costo_minimo, 'Bellman-Ford; ' ~ flujo.flujo_sin_control ~ ' órdenes sin control') }}
+    {{ stat('Costo mínimo con controles', flujo.costo_controlado, 'envía ' ~ flujo.enviado_controlado ~ ' de ' ~ flujo.requerido) }}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tramo</th><th class="num">Capacidad</th><th class="num">Costo</th><th>Control</th><th class="num">Flujo máximo</th><th class="num">Flujo de costo mínimo</th></tr></thead>
+      <tbody>
+        {% for arista in flujo.aristas %}
+        <tr>
+          <td>{{ arista.origen }} a {{ arista.destino }}</td>
+          <td class="num">{{ arista.capacidad }}</td>
+          <td class="num">{{ arista.costo }}</td>
+          <td>{{ 'Con control' if arista.control else 'Ruta alterna sin control' }}</td>
+          <td class="num">{{ arista.flujo_maximo }}</td>
+          <td class="num">{{ arista.flujo_costo_minimo }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">Si se exige que todas las órdenes pasen por los controles, solo caben {{ flujo.maximo_controlado }} órdenes por hora; para llegar a {{ flujo.requerido }} habría que ampliar la capacidad del tramo más estrecho.</p>
+</div>
+
+<div class="card dashboard-row">
+  <h2>5. Apoyo a la toma de decisiones (análisis de sensibilidad)</h2>
+  <p>Rangos en los que se mantiene la decisión del punto 1 al cambiar un dato sin tocar los demás.</p>
+  <h3>Recursos disponibles</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Recurso</th><th class="num">Valor actual</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead>
+      <tbody>
+        {% for recurso in plan.recursos %}
+        <tr><td>{{ recurso.nombre }}</td><td class="num">{{ recurso.valor|decimal(1) }}</td><td class="num">{{ limite(recurso.minimo) }}</td><td class="num">{{ limite(recurso.maximo) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% set presupuesto = plan.recursos[0] %}
+  <p>Si el presupuesto baja de {{ limite(presupuesto.minimo) }} millones o sube de {{ limite(presupuesto.maximo) }} millones, cambia el conjunto de controles que conviene implementar.</p>
+  <h3>Reducción de riesgo de cada control</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Control</th><th class="num">Valor actual</th><th class="num">Mínimo</th><th class="num">Máximo</th></tr></thead>
+      <tbody>
+        {% for control in plan.controles %}
+        <tr><td>{{ control.nombre }}</td><td class="num">{{ control.reduccion|number }}</td><td class="num">{{ limite(control.sens.minimo) }}</td><td class="num">{{ limite(control.sens.maximo) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

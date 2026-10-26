@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import field, check %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block main_class %} flush{% endblock %}
+{% block content %}
+<div class="auth-split">
+  <aside class="auth-aside">
+    <span class="eyebrow">Bienvenido de nuevo</span>
+    <div>
+      <h2>Tu tienda, tus datos, en un solo lugar.</h2>
+      <p>Ingresa para seguir tus pedidos, gestionar tu catálogo o revisar la analítica de tu empresa.</p>
+    </div>
+  </aside>
+  <div class="auth-form">
+    <div class="auth-form-inner">
+      <span class="eyebrow">Cuenta</span>
+      <h1>Iniciar sesión</h1>
+      <p class="muted">Accede a tu cuenta de NovaCommerce.</p>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.email, autocomplete="email", autofocus=true) }}
+        {{ field(form.password, autocomplete="current-password") }}
+        {{ check(form.remember) }}
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Ingresar</button>
+      </form>
+      <div class="auth-links small">
+        <a href="{{ url_for('auth.forgot_password') }}">Olvidé mi contraseña</a>
+        <span class="muted">¿Nuevo aquí? <a href="{{ url_for('auth.register') }}">Crear cuenta</a></span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

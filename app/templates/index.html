@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import tile, product_card with context %}
+{% block title %}Inicio{% endblock %}
+{% block main_class %} flush{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-inner hero-stack">
+    <figure class="hero-banner">
+      <picture>
+        <source type="image/webp" srcset="{{ url_for('static', filename='img/hero-900.webp') }} 900w, {{ url_for('static', filename='img/hero-1600.webp') }} 1600w" sizes="(max-width: 1320px) 100vw, 1320px">
+        <img src="{{ url_for('static', filename='img/hero-1600.jpg') }}" srcset="{{ url_for('static', filename='img/hero-900.jpg') }} 900w, {{ url_for('static', filename='img/hero-1600.jpg') }} 1600w" sizes="(max-width: 1320px) 100vw, 1320px" width="1600" height="893" alt="Novacommerce: dueño de una tienda revisando sus pedidos en una tableta detrás del mostrador" fetchpriority="high" decoding="async">
+      </picture>
+    </figure>
+    <div class="hero-copy">
+      <div>
+        <span class="eyebrow">Comercio local, decisiones con datos</span>
+        <h1>Vende en línea.<br><em>Decide</em> con datos.</h1>
+      </div>
+      <div>
+        <p class="hero-lead">NovaCommerce reúne catálogo, inventario, pedidos y analítica en una sola plataforma para pequeñas y medianas empresas, con pronóstico de demanda que te dice cuándo y cuánto reponer.</p>
+        <div class="toolbar">
+          <a class="btn btn-primary btn-lg" href="{{ url_for('store.index') }}">Explorar tiendas</a>
+          <a class="btn btn-ghost-light btn-lg" href="{{ url_for('auth.register') }}">Abre tu tienda</a>
+        </div>
+        <div class="hero-meta">
+          <div><strong>{{ stats.stores|number }}</strong><span>Tiendas activas</span></div>
+          <div><strong>{{ stats.products|number }}</strong><span>Artículos en catálogo</span></div>
+          <div><strong>{{ stats.categories|number }}</strong><span>Categorías</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    {% for _ in range(2) %}
+    <span>Inventario sin sobreventas</span>
+    <span>Pronóstico de demanda</span>
+    <span>Punto de reorden automático</span>
+    <span>Análisis OLAP</span>
+    <span>Multiempresa</span>
+    <span>Pedidos por tienda</span>
+    {% endfor %}
+  </div>
+</div>
+
+{% if featured %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Recién llegados</span>
+      <h2>Lo nuevo en las tiendas</h2>
+    </div>
+    <a class="link-arrow" href="{{ url_for('store.index') }}">Ver todas las tiendas</a>
+  </div>
+  <div class="product-grid">
+    {% for product, inventory, company in featured %}
+    {{ product_card(product, inventory, store_name=company.name, show_actions=False) }}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if stores %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Tiendas</span>
+      <h2>Compra directo a quienes lo hacen</h2>
+    </div>
+  </div>
+  <div class="store-grid">
+    {% for company, total in stores %}
+    <a class="store-card" href="{{ url_for('store.store_detail', slug=company.slug) }}">
+      {{ tile(company.id + 3, company.name, total|number ~ ' artículos', 'tag-dark', company.city or company.country) }}
+      <h3>{{ company.name }}</h3>
+      <p>{{ company.description or 'Explora el catálogo de esta tienda.' }}</p>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="split">
+  <div class="split-panel split-dark">
+    <span class="eyebrow">Para empresas</span>
+    <h2>Toda tu operación en un solo lugar</h2>
+    <ul class="checklist">
+      <li>Catálogo, clientes, ventas directas y tienda en línea.</li>
+      <li>Control de stock con bloqueo transaccional: cero sobreventas.</li>
+      <li>Almacén de datos en estrella con carga incremental.</li>
+      <li>Pronóstico semanal que alimenta reorden y EOQ.</li>
+    </ul>
+    <div class="toolbar">
+      <a class="btn btn-light" href="{{ url_for('auth.register') }}">Crear cuenta de empresa</a>
+    </div>
+  </div>
+  <div class="split-panel split-blue">
+    <span class="eyebrow">Para compradores</span>
+    <h2>Un carrito, muchas tiendas</h2>
+    <p>Agrega artículos de distintas tiendas, guarda tus favoritos y sigue cada pedido por separado, con stock confirmado al momento de pagar.</p>
+    <div class="toolbar">
+      <a class="btn btn-ghost-light" href="{{ url_for('store.index') }}">Empezar a comprar</a>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt">
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Lo que nos importa</span>
+        <h2>Tecnología seria para negocios pequeños</h2>
+      </div>
+    </div>
+    <div class="values">
+      <div class="value-item"><span class="value-num">01</span><h3>Operación completa</h3><p>Productos, clientes, ventas directas, tienda en línea y control de stock sin sobreventas.</p></div>
+      <div class="value-item"><span class="value-num">02</span><h3>Almacén de datos</h3><p>Modelo estrella con carga incremental y consultas OLAP para entender ventas, categorías y clientes.</p></div>
+      <div class="value-item"><span class="value-num">03</span><h3>Reposición inteligente</h3><p>Pronóstico de demanda por artículo que alimenta el punto de reorden y la cantidad económica de pedido.</p></div>
+      <div class="value-item"><span class="value-num">04</span><h3>Aislamiento por empresa</h3><p>Cada consulta está filtrada por empresa: tus datos nunca se cruzan con los de otra tienda.</p></div>
+      <div class="value-item"><span class="value-num">05</span><h3>Seguridad por defecto</h3><p>CSRF global, bloqueo tras intentos fallidos, cabeceras estrictas y detección de accesos anómalos.</p></div>
+      <div class="value-item"><span class="value-num">06</span><h3>Compras optimizadas</h3><p>Plan de compras con programación lineal según presupuesto y capacidad de bodega.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <span class="eyebrow">Empieza hoy</span>
+  <h2>Tu tienda en línea, lista en minutos.</h2>
+  <p>Crea tu cuenta, carga tu catálogo y empieza a vender con inventario y analítica desde el primer día.</p>
+  <div class="toolbar">
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+    <a class="btn btn-ghost-light btn-lg" href="{{ url_for('store.index') }}">Explorar tiendas</a>
+  </div>
+</section>
+{% endblock %}

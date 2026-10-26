@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import post_button, status_badge, stat %}
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ customer.full_name }}</h1>
+    <p class="muted">Cliente desde {{ customer.created_at|datefmt }}</p>
+  </div>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Editar</a>
+    {{ post_button(url_for('customers.delete', customer_id=customer.id), 'Eliminar', 'btn btn-danger', 'Se eliminará el cliente. ¿Continuar?') }}
+  </div>
+</div>
+<div class="grid grid-3">
+  {{ stat('Pedidos válidos', order_count|number) }}
+  {{ stat('Total comprado', spent|money) }}
+  {{ stat('Ciudad', customer.city or '-') }}
+</div>
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Contacto</h2>
+    <dl class="dl">
+      <dt>Correo</dt><dd>{{ customer.email or '-' }}</dd>
+      <dt>Teléfono</dt><dd>{{ customer.phone or '-' }}</dd>
+      <dt>País</dt><dd>{{ customer.country or '-' }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h2>Pedidos recientes</h2>
+    {% if orders %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td><a href="{{ url_for('orders.view', order_id=order.id) }}">{{ order.code }}</a></td>
+            <td>{{ order.created_at|datefmt }}</td>
+            <td>{{ status_badge(order.status) }}</td>
+            <td class="num">{{ order.total|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Sin pedidos todavía.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

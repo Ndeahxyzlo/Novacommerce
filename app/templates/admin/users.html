@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager, post_button %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Usuarios</h1></div>
+<form method="get" class="filters">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar por correo">
+  <button class="btn" type="submit">Buscar</button>
+</form>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Alta</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for user in pagination.items %}
+      <tr>
+        <td>{{ user.full_name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ {'admin': 'Administrador', 'owner': 'Propietario', 'customer': 'Cliente'}[user.role] }}</td>
+        <td>{{ user.created_at|datefmt }}</td>
+        <td>{% if user.active %}<span class="badge badge-ok">Activo</span>{% else %}<span class="badge badge-danger">Inactivo</span>{% endif %}</td>
+        <td class="right">{% if user.id != current_user.id %}{{ post_button(url_for('admin.toggle_user', user_id=user.id), 'Desactivar' if user.active else 'Activar', 'btn btn-sm') }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'admin.users', q=q) }}
+{% endblock %}

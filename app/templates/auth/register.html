@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import field %}
+{% block title %}Crear cuenta{% endblock %}
+{% block main_class %} flush{% endblock %}
+{% block content %}
+<div class="auth-split">
+  <aside class="auth-aside">
+    <span class="eyebrow">Únete a NovaCommerce</span>
+    <div>
+      <h2>Compra local o abre tu propia tienda.</h2>
+      <p>Como cliente, compra en todas las tiendas con un solo carrito. Como empresa, gestiona catálogo, inventario y analítica desde el primer día.</p>
+    </div>
+  </aside>
+  <div class="auth-form">
+    <div class="auth-form-inner">
+      <span class="eyebrow">Registro</span>
+      <h1>Crear cuenta</h1>
+      <p class="muted">Compra en las tiendas de la plataforma o abre la tuya.</p>
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ field(form.account_type) }}
+        <div class="form-grid">
+          {{ field(form.first_name, autocomplete="given-name") }}
+          {{ field(form.last_name, autocomplete="family-name") }}
+        </div>
+        {{ field(form.email, autocomplete="email") }}
+        {{ field(form.phone, autocomplete="tel") }}
+        {{ field(form.company_name) }}
+        <div class="form-grid">
+          {{ field(form.password, autocomplete="new-password") }}
+          {{ field(form.confirm, autocomplete="new-password") }}
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Crear cuenta</button>
+      </form>
+      <div class="auth-links small">
+        <span class="muted">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

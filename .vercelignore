@@ -1,0 +1,16 @@
+database/
+docs/
+tests/
+instalar_linux.sh
+instalar_windows.bat
+docker-compose.metabase.yml
+Procfile
+runtime.txt
+.env
+fotos_originales/
+Novacommerce-main.zip
+Shop_owner_checking_tablet_2K_20261022103813.jpg
+pgdata/
+pg.log
+.venv/
+instance/

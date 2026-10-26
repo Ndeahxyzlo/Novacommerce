@@ -1,0 +1,36 @@
+Pager usage is off.
+== Roles
+  rolname   | rolcanlogin | rolconnlimit 
+------------+-------------+--------------
+ auditor_dw | t           |            3
+ bi_reader  | t           |           10
+ dw_auditor | f           |           -1
+ dw_etl     | f           |           -1
+ dw_reader  | f           |           -1
+(5 rows)
+
+== bi_reader lee vista
+You are now connected to database "novacommerce" as user "bi_reader".
+  empresa   | anio | mes |   ingresos   
+------------+------+-----+--------------
+ TecnoHogar | 2026 |   5 | 777482600.00
+ TecnoHogar | 2026 |   8 | 746254400.00
+ TecnoHogar | 2026 |   6 | 745515600.00
+(3 rows)
+
+== bi_reader intenta leer tabla de hechos
+psql:evid.sql:8: ERROR:  permission denied for table fact_ventas
+== bi_reader intenta leer auditoria
+psql:evid.sql:10: ERROR:  permission denied for table audit_log
+== bi_reader intenta revelar correo
+psql:evid.sql:12: ERROR:  permission denied for function revelar_email
+== bi_reader intenta escribir
+psql:evid.sql:14: ERROR:  permission denied for table dim_canal
+== Nombre enmascarado en vista
+ cliente_anonimo | cliente_ciudad 
+-----------------+----------------
+ L***            | Cartagena
+ L***            | Cartagena
+ J***            | Bogotá
+(3 rows)
+

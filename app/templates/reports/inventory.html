@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Inventario{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Inventario y reposición</h1>
+    <p class="muted">Stock actual frente al punto de reorden calculado con el pronóstico de demanda.</p>
+  </div>
+  <a class="btn" href="{{ url_for('reports.inventory', format='csv') }}">Exportar CSV</a>
+</div>
+<div class="grid grid-3">
+  <div class="card stat"><span class="label">Valor del inventario (a costo)</span><span class="value">{{ total_value|money }}</span></div>
+  <div class="card stat"><span class="label">Productos activos</span><span class="value">{{ rows|length|number }}</span></div>
+  <div class="card stat"><span class="label">Por reponer</span><span class="value">{{ low|number }}</span></div>
+</div>
+<div class="table-wrap dashboard-row">
+  <table>
+    <thead>
+      <tr><th>SKU</th><th>Producto</th><th class="num">Stock</th><th class="num">Reorden</th><th class="num">Seguridad</th><th class="num">EOQ</th><th class="num">Demanda 4 sem.</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for product, inv, units in rows %}
+      <tr>
+        <td>{{ product.sku }}</td>
+        <td><a href="{{ url_for('products.view', product_id=product.id) }}">{{ product.name }}</a></td>
+        <td class="num">{{ inv.quantity|number }}</td>
+        <td class="num">{{ inv.reorder_point|number }}</td>
+        <td class="num">{{ inv.safety_stock|number }}</td>
+        <td class="num">{{ inv.eoq|number }}</td>
+        <td class="num">{{ (units or 0)|decimal(1) }}</td>
+        <td>{% if inv.needs_restock %}<span class="badge badge-warn">Reponer {{ inv.eoq|number }}</span>{% elif inv.reorder_point == 0 %}<span class="badge">Sin cálculo</span>{% else %}<span class="badge badge-ok">Suficiente</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

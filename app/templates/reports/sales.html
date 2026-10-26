@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Ventas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Reporte de ventas</h1>
+    <p class="muted">Ventas por producto en el periodo, sin pedidos cancelados.</p>
+  </div>
+  <a class="btn" href="{{ url_for('reports.sales', format='csv', **{'from': start.isoformat(), 'to': end.isoformat()}) }}">Exportar CSV</a>
+</div>
+<form method="get" class="filters">
+  <input class="input" type="date" name="from" value="{{ start.isoformat() }}">
+  <input class="input" type="date" name="to" value="{{ end.isoformat() }}">
+  <button class="btn" type="submit">Aplicar</button>
+</form>
+<div class="grid grid-3">
+  <div class="card stat"><span class="label">Ingresos</span><span class="value">{{ total_revenue|money }}</span></div>
+  <div class="card stat"><span class="label">Margen</span><span class="value">{{ total_margin|money }}</span></div>
+  <div class="card stat"><span class="label">Productos vendidos</span><span class="value">{{ rows|length|number }}</span></div>
+</div>
+{% if rows %}
+<div class="table-wrap dashboard-row">
+  <table>
+    <thead><tr><th>SKU</th><th>Producto</th><th class="num">Unidades</th><th class="num">Ingresos</th><th class="num">Margen</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.sku }}</td>
+        <td>{{ row.product_name }}</td>
+        <td class="num">{{ row.units|number }}</td>
+        <td class="num">{{ row.revenue|money }}</td>
+        <td class="num">{{ row.margin|money }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty dashboard-row">No hay ventas en el periodo seleccionado.</div>
+{% endif %}
+{% endblock %}

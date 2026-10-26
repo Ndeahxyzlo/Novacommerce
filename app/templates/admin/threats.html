@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Simulación de amenazas{% endblock %}
+{% macro terms(key) %}{% for item in plan.scenarios %}{{ item[key]|number }} {{ item.var }}{% if not loop.last %} + {% endif %}{% endfor %}{% endmacro %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Simulación de escenarios de amenazas</h1>
+    <p class="muted">Programación lineal resuelta con el método simplex: cuántas simulaciones de ataque ejecutar en el entorno de pruebas para maximizar el índice de diagnóstico de resiliencia de la plataforma, con horas de servidores y de analistas limitadas.</p>
+  </div>
+</div>
+<form method="get" class="filters">
+  <select class="input" name="modo" aria-label="Modo">
+    <option value="clase" {{ 'selected' if mode == 'clase' }}>Ejercicio de clase (Ransomware y Phishing)</option>
+    <option value="ampliado" {{ 'selected' if mode == 'ampliado' }}>Ampliado (con los ataques que detecta NovaCommerce)</option>
+  </select>
+  <input class="input" type="number" min="0" step="1" name="servidores" placeholder="Horas de servidores" value="{{ plan.servers|int if custom else '' }}">
+  <input class="input" type="number" min="0" step="1" name="analistas" placeholder="Horas de analistas" value="{{ plan.analysts|int if custom else '' }}">
+  <button class="btn btn-primary" type="submit">Calcular</button>
+  <a class="btn" href="{{ url_for('admin.threat_simulations', modo=mode) }}">Valores por defecto</a>
+</form>
+{% if plan.status == 'infactible' %}
+<div class="card empty">Con esas horas no se alcanza ni la cobertura mínima de una simulación por escenario. Aumenta las horas de servidores o de analistas.</div>
+{% else %}
+<div class="grid grid-4">
+  <div class="card stat"><span class="label">Índice de resiliencia (Z)</span><span class="value">{{ plan.totals.points|number }}</span><span class="note">óptimo del modelo entero</span></div>
+  <div class="card stat"><span class="label">Simulaciones a ejecutar</span><span class="value">{{ plan.totals.simulations|number }}</span><span class="note">de {{ plan.scenarios|length }} escenarios</span></div>
+  <div class="card stat"><span class="label">Horas de servidores</span><span class="value">{{ plan.totals.servers|number }}</span><span class="note">disponibles: {{ plan.servers|number }}</span></div>
+  <div class="card stat"><span class="label">Horas de analistas</span><span class="value">{{ plan.totals.analysts|number }}</span><span class="note">disponibles: {{ plan.analysts|number }}</span></div>
+</div>
+<div class="card dashboard-row">
+  <h2>1. Planteamiento</h2>
+  <p>El equipo de ciberseguridad necesita programar la ejecución de simulaciones de ciberataques en su entorno de prueba. Cada simulación aporta puntos de evaluación de resiliencia del sistema y consume horas de servidores virtuales y horas de analistas del Red Team.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Var.</th><th>Escenario</th><th class="num">Horas de servidor</th><th class="num">Horas de analista</th><th class="num">Puntos</th><th class="num">Mínimo</th><th class="num">Simulaciones</th><th>Origen del dato</th></tr>
+      </thead>
+      <tbody>
+        {% for item in plan.scenarios %}
+        <tr>
+          <td>{{ item.var }}</td>
+          <td>{{ item.name }}</td>
+          <td class="num">{{ item.servers|number }}</td>
+          <td class="num">{{ item.analysts|number }}</td>
+          <td class="num">{{ item.points|number }}</td>
+          <td class="num">{{ item.minimum|number }}</td>
+          <td class="num"><strong>{{ item.quantity|number }}</strong></td>
+          <td>{{ 'Ejercicio de clase' if item.origin == 'ejercicio' else 'Supuesto de demostración' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="card dashboard-row">
+  <h2>Modelo de programación lineal</h2>
+  <ol>
+    <li><strong>Variables de decisión.</strong> Cada xi es el número de simulaciones que se ejecutan del escenario i:
+      <ul>
+        {% for item in plan.scenarios %}
+        <li>{{ item.var }}: simulaciones de {{ item.short }}.</li>
+        {% endfor %}
+      </ul>
+    </li>
+    <li><strong>Función objetivo.</strong> Maximizar Z = {{ terms('points') }}, el índice de diagnóstico de resiliencia.</li>
+    <li><strong>Restricciones de recursos.</strong>
+      <ul>
+        <li>Horas de uso de servidores virtuales: {{ terms('servers') }} &le; {{ plan.servers|number }}</li>
+        <li>Horas de disponibilidad de analistas del Red Team: {{ terms('analysts') }} &le; {{ plan.analysts|number }}</li>
+        {% if plan.scenarios|selectattr('minimum')|list %}
+        <li>Cobertura mínima: cada xi &ge; 1, para que ningún escenario quede sin probar.</li>
+        {% endif %}
+      </ul>
+    </li>
+    <li><strong>No negatividad.</strong> {% for item in plan.scenarios %}{{ item.var }}{% if not loop.last %}, {% endif %}{% endfor %} &ge; 0.</li>
+  </ol>
+  <h3>2. Forma estándar</h3>
+  <p>Se introducen las variables de holgura s1, s2 &ge; 0:</p>
+  <ul>
+    <li>Maximizar Z &minus; {% for item in plan.scenarios %}{{ item.points|number }} {{ item.var }} &minus; {% endfor %}0 s1 &minus; 0 s2 = 0</li>
+    <li>{{ terms('servers') }} + s1 = {{ plan.servers|number }}</li>
+    <li>{{ terms('analysts') }} + s2 = {{ plan.analysts|number }}</li>
+  </ul>
+  {% if plan.scenarios|selectattr('minimum')|list %}
+  <p class="muted">Para resolver con la cobertura mínima se hace el cambio de variable xi = yi + 1. Así yi &ge; 0 y las holguras siguen formando una base inicial factible; las tablas de abajo están escritas en y.</p>
+  {% endif %}
+</div>
+<div class="card dashboard-row">
+  <h2>3. Resolución con el método simplex</h2>
+  <p>En cada iteración entra la variable con el coeficiente más negativo de la fila Z y sale la fila con la menor razón entre el término independiente y el coeficiente de la columna que entra. El pivote es eliminación de Gauss-Jordan. Se termina cuando la fila Z no tiene valores negativos.</p>
+  {% for step in plan.tableaus.steps %}
+  <h3>{{ step.label }}</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Base</th>{% for name in plan.tableaus.header %}<th class="num">{{ name }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in step.rows %}
+        <tr>
+          <td>{{ row.base }}</td>
+          {% for cell in row.cells %}<td class="num">{{ cell }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+<div class="card dashboard-row">
+  <h2>4. Resultados</h2>
+  <p>Plan óptimo: {% for item in plan.scenarios %}{{ item.var }} = {{ item.quantity|number }}{% if not loop.last %}, {% endif %}{% endfor %}, con Z = {{ plan.totals.points|number }}.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Recurso</th><th class="num">Disponible</th><th class="num">Usado</th><th class="num">Holgura</th><th class="num">Precio sombra</th></tr>
+      </thead>
+      <tbody>
+        {% for row in plan.usage %}
+        <tr>
+          <td>{{ row.resource }}</td>
+          <td class="num">{{ row.available|number }}</td>
+          <td class="num">{{ row.used|number }}</td>
+          <td class="num">{{ row.slack|number }}</td>
+          <td class="num">{{ row.shadow|decimal(2) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li>Servidores virtuales: {% if plan.binding.servers %}limitan el plan. Una hora más de servidor agrega {{ plan.shadow.servers|decimal(2) }} puntos de resiliencia (precio sombra).{% else %}no limitan el plan; sobran {{ plan.usage[0].slack|number }} horas.{% endif %}</li>
+    <li>Analistas del Red Team: {% if plan.binding.analysts %}limitan el plan. Una hora más de analista agrega {{ plan.shadow.analysts|decimal(2) }} puntos de resiliencia (precio sombra).{% else %}no limitan el plan; sobran {{ plan.usage[1].slack|number }} horas.{% endif %}</li>
+    <li>{% if plan.lp_is_integer %}La solución del simplex ya es entera, así que se puede ejecutar tal cual.{% else %}La solución del simplex es fraccionaria (Z = {{ plan.objective_lp|decimal(2) }}). Como las simulaciones se cuentan en unidades enteras, se busca el mejor plan entero (Z = {{ plan.objective_integer|number }}), que no siempre coincide con redondear hacia abajo.{% endif %}</li>
+    <li>Simplex: {{ plan.pivots|number }} pivotes. El vértice óptimo {% if plan.verified %}se verificó resolviendo por eliminación el sistema de {{ plan.active_constraints|number }} restricciones activas.{% else %}no se pudo verificar por eliminación.{% endif %}</li>
+  </ul>
+</div>
+<div class="card dashboard-row">
+  <h2>Contexto de la plataforma</h2>
+  <p>Los escenarios de fuerza bruta y de relleno de credenciales corresponden a ataques que NovaCommerce ya registra y clasifica en el control de accesos. En los registros actuales hay {{ observed.events|number }} eventos de acceso, de los cuales {{ observed.attacks|number }} están etiquetados como ataque, provenientes de {{ observed.attacker_ips|number }} direcciones IP distintas. Las horas y los puntos de las simulaciones son parámetros de planeación que se pueden editar arriba.</p>
+</div>
+{% endif %}
+{% endblock %}

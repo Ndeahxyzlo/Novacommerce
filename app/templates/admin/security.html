@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import post_button %}
+{% block title %}Seguridad{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Seguridad de accesos</h1>
+    <p class="muted">Detección de intentos anómalos de inicio de sesión con regresión logística.</p>
+  </div>
+  {{ post_button(url_for('admin.train_anomaly'), 'Reentrenar modelo', 'btn btn-primary') }}
+</div>
+{% if run and run.metrics.get('trained') %}
+<div class="card">
+  <h2>Última evaluación</h2>
+  <p class="muted">{{ run.created_at|datetimefmt }}. Métricas sobre datos de prueba apartados, con etiquetas sintéticas de demostración.</p>
+  <div class="grid grid-4">
+    <div class="stat"><span class="label">Exactitud</span><span class="value">{{ (run.metrics.accuracy * 100)|decimal(1) }} %</span></div>
+    <div class="stat"><span class="label">Precisión</span><span class="value">{{ (run.metrics.precision * 100)|decimal(1) }} %</span></div>
+    <div class="stat"><span class="label">Sensibilidad</span><span class="value">{{ (run.metrics.recall * 100)|decimal(1) }} %</span></div>
+    <div class="stat"><span class="label">AUC</span><span class="value">{{ run.metrics.roc_auc|decimal(3) }}</span></div>
+  </div>
+</div>
+{% endif %}
+<div class="grid grid-2 dashboard-row">
+  <div class="card">
+    <h2>Accesos de mayor riesgo (7 días)</h2>
+    {% if risky %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Correo</th><th>IP</th><th>Resultado</th><th class="num">Riesgo</th></tr></thead>
+        <tbody>
+          {% for row in risky[:20] %}
+          <tr>
+            <td>{{ row.created_at|datetimefmt }}</td>
+            <td>{{ row.email or '-' }}</td>
+            <td>{{ row.ip }}</td>
+            <td>{{ 'Exitoso' if row.success else 'Fallido' }}</td>
+            <td class="num"><span class="badge {{ 'badge-danger' if row.risk >= 0.8 else ('badge-warn' if row.risk >= 0.5 else '') }}">{{ (row.risk * 100)|decimal(0) }} %</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="empty">Entrena el modelo para puntuar los accesos recientes.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>Registro reciente</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fecha</th><th>Evento</th><th>Correo</th><th>Resultado</th></tr></thead>
+        <tbody>
+          {% for entry in recent %}
+          <tr>
+            <td>{{ entry.created_at|datetimefmt }}</td>
+            <td>{{ entry.event }}</td>
+            <td>{{ entry.email or '-' }}</td>
+            <td>{{ 'Exitoso' if entry.success else 'Fallido' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

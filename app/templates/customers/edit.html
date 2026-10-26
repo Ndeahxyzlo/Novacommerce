@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Editar cliente{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Editar cliente</h1></div>
+{% with cancel_url=url_for('customers.view', customer_id=customer.id) %}{% include 'customers/_form.html' %}{% endwith %}
+{% endblock %}

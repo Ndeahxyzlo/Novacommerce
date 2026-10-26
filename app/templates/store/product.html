@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import tile, heart_icon %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block description %}{{ (product.description or product.name)|truncate(155) }}{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Ruta">
+  <a href="{{ url_for('store.index') }}">Tiendas</a><span aria-hidden="true">/</span>
+  <a href="{{ url_for('store.store_detail', slug=company.slug) }}">{{ company.name }}</a><span aria-hidden="true">/</span>
+  <a href="{{ url_for('store.store_detail', slug=company.slug, category=product.category) }}">{{ product.category }}</a>
+</nav>
+{% set out = inventory.quantity <= 0 %}
+{% set low = not out and inventory.quantity <= 5 %}
+<div class="pdp">
+  <div class="pdp-media">
+    {{ tile(product.id, product.name, 'Agotado' if out else ('Últimas unidades' if low else None), 'tag-dark' if out else 'tag-blue') }}
+  </div>
+  <div class="pdp-info">
+    <a class="eyebrow" href="{{ url_for('store.store_detail', slug=company.slug) }}">{{ company.name }}</a>
+    <h1>{{ product.name }}</h1>
+    <div class="pdp-row">
+      <span class="price price-lg">{{ product.price|money }}</span>
+      {% if out %}<span class="stock-dot out">Agotado</span>
+      {% elif low %}<span class="stock-dot low">Quedan {{ inventory.quantity|number }}</span>
+      {% else %}<span class="stock-dot">{{ inventory.quantity|number }} disponibles</span>{% endif %}
+    </div>
+    <div class="pdp-buy">
+      {% if not out %}
+      {% if current_user.is_authenticated and current_user.is_customer %}
+      <form method="post" action="{{ url_for('store.cart_add', product_id=product.id) }}" class="qty-form">
+        {{ quantity_form.hidden_tag() }}
+        <input class="input" type="number" name="quantity" min="1" max="{{ inventory.quantity }}" value="1" aria-label="Cantidad">
+        <button class="btn btn-primary btn-lg" type="submit">Agregar al carrito</button>
+      </form>
+      {% elif not current_user.is_authenticated %}
+      <a class="btn btn-primary btn-lg btn-block" href="{{ url_for('auth.login', next=request.path) }}">Ingresa para comprar</a>
+      {% endif %}
+      {% endif %}
+      {% if current_user.is_authenticated and current_user.is_customer %}
+      <form method="post" action="{{ url_for('store.wishlist_toggle', product_id=product.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-block{{ ' btn-dark' if wished }}" type="submit">{{ heart_icon() }} {{ 'Quitar de favoritos' if wished else 'Guardar en favoritos' }}</button>
+      </form>
+      {% endif %}
+    </div>
+    <details class="details" open>
+      <summary>Descripción</summary>
+      <div>{{ product.description or 'Sin descripción disponible.' }}</div>
+    </details>
+    <details class="details">
+      <summary>Detalles</summary>
+      <div>
+        <dl class="dl">
+          <dt>Referencia</dt><dd>SKU {{ product.sku }}</dd>
+          <dt>Categoría</dt><dd>{{ product.category }}</dd>
+          <dt>Vendido por</dt><dd>{{ company.name }}</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="details">
+      <summary>Envío y pedidos</summary>
+      <div>Cada tienda genera un pedido independiente. El stock se confirma al momento de pagar y puedes cancelar mientras el pedido esté pendiente.</div>
+    </details>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+{
+  "generado": "2026-09-30T15:09:47.697565+00:00",
+  "aprobados": 30,
+  "total": 30,
+  "controles": [
+    {
+      "control": "Filas de hechos igual a items de orden",
+      "esperado": 71917,
+      "obtenido": 71917,
+      "ok": true
+    },
+    {
+      "control": "Ingreso total igual a la suma de lineas operativas",
+      "esperado": 27544046800.0,
+      "obtenido": 27544046800.0,
+      "ok": true
+    },
+    {
+      "control": "Costo total igual a costo unitario por cantidad",
+      "esperado": 16881966200.0,
+      "obtenido": 16881966200.0,
+      "ok": true
+    },
+    {
+      "control": "Unidades vendidas iguales",
+      "esperado": 121503,
+      "obtenido": 121503,
+      "ok": true
+    },
+    {
+      "control": "Ordenes distintas iguales",
+      "esperado": 40000,
+      "obtenido": 40000,
+      "ok": true
+    },
+    {
+      "control": "Ingreso por empresa reconciliado",
+      "esperado": 3,
+      "obtenido": 3,
+      "ok": true
+    },
+    {
+      "control": "Capa bronce igual a items de orden",
+      "esperado": 71917,
+      "obtenido": 71917,
+      "ok": true
+    },
+    {
+      "control": "Capa plata mas rechazos igual a bronce",
+      "esperado": 71917,
+      "obtenido": 71917,
+      "ok": true
+    },
+    {
+      "control": "Snapshot de inventario igual a productos con inventario",
+      "esperado": 140,
+      "obtenido": 140,
+      "ok": true
+    },
+    {
+      "control": "Empresas en dimension",
+      "esperado": 3,
+      "obtenido": 3,
+      "ok": true
+    },
+    {
+      "control": "Productos en dimension",
+      "esperado": 140,
+      "obtenido": 140,
+      "ok": true
+    },
+    {
+      "control": "Clientes en dimension",
+      "esperado": 15000,
+      "obtenido": 15000,
+      "ok": true
+    },
+    {
+      "control": "Clientes con correo cifrado",
+      "esperado": 15000,
+      "obtenido": 15000,
+      "ok": true
+    },
+    {
+      "control": "Hechos duplicados por orden_item_id",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos sin fecha en dim_tiempo",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos sin empresa en dim_empresa",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos con producto inexistente",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos con cliente inexistente",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Productos con mas de una version vigente",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Clientes con mas de una version vigente",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Versiones de producto con intervalos solapados",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Versiones de cliente con intervalos solapados",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos con version de producto posterior a la venta",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Hechos con version de cliente posterior a la venta",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Cantidades no positivas",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Margen distinto de ingreso menos costo",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Ingreso distinto de cantidad por precio",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Valores nulos en columnas obligatorias",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Producto de otra empresa en un hecho",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    },
+    {
+      "control": "Cliente de otra empresa en un hecho",
+      "esperado": 0,
+      "obtenido": 0,
+      "ok": true
+    }
+  ],
+  "volumenes": {
+    "dim_tiempo": 828,
+    "dim_empresa": 3,
+    "dim_producto": 145,
+    "dim_cliente": 15020,
+    "dim_canal": 2,
+    "fact_ventas": 71917,
+    "fact_inventario_snapshot": 140,
+    "bronce_ventas": 71917,
+    "plata_ventas": 71917,
+    "plata_rechazos": 0
+  },
+  "ultimas_ejecuciones": [
+    {
+      "modo": "incremental",
+      "estado": "ok",
+      "filas": 142,
+      "inicio": "2026-09-30T15:09:44.565037+00:00",
+      "fin": "2026-09-30T15:09:44.871750+00:00"
+    },
+    {
+      "modo": "incremental",
+      "estado": "ok",
+      "filas": 142,
+      "inicio": "2026-09-30T15:09:31.251846+00:00",
+      "fin": "2026-09-30T15:09:31.474273+00:00"
+    },
+    {
+      "modo": "completa",
+      "estado": "ok",
+      "filas": 71917,
+      "inicio": "2026-09-30T15:09:23.633004+00:00",
+      "fin": "2026-09-30T15:09:31.249841+00:00"
+    }
+  ],
+  "auditoria": [
+    {
+      "tabla": "dim_cliente",
+      "operacion": "INSERT",
+      "filas": "15020",
+      "eventos": 2
+    },
+    {
+      "tabla": "dim_cliente",
+      "operacion": "UPDATE",
+      "filas": "20",
+      "eventos": 1
+    },
+    {
+      "tabla": "dim_empresa",
+      "operacion": "INSERT",
+      "filas": "3",
+      "eventos": 1
+    },
+    {
+      "tabla": "dim_empresa",
+      "operacion": "UPDATE",
+      "filas": "6",
+      "eventos": 2
+    },
+    {
+      "tabla": "dim_producto",
+      "operacion": "INSERT",
+      "filas": "145",
+      "eventos": 2
+    },
+    {
+      "tabla": "dim_producto",
+      "operacion": "UPDATE",
+      "filas": "5",
+      "eventos": 1
+    },
+    {
+      "tabla": "dim_tiempo",
+      "operacion": "INSERT",
+      "filas": "828",
+      "eventos": 1
+    },
+    {
+      "tabla": "fact_inventario_snapshot",
+      "operacion": "INSERT",
+      "filas": "140",
+      "eventos": 1
+    },
+    {
+      "tabla": "fact_inventario_snapshot",
+      "operacion": "UPDATE",
+      "filas": "280",
+      "eventos": 2
+    },
+    {
+      "tabla": "fact_ventas",
+      "operacion": "INSERT",
+      "filas": "71917",
+      "eventos": 1
+    },
+    {
+      "tabla": "fact_ventas",
+      "operacion": "UPDATE",
+      "filas": "284",
+      "eventos": 2
+    }
+  ]
+}

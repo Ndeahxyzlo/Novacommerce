@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager, product_card with context %}
+{% block title %}{{ company.name }}{% endblock %}
+{% block content %}
+<section class="store-hero">
+  <div>
+    <span class="eyebrow">{{ company.city or company.country }}</span>
+    <h1>{{ company.name }}</h1>
+    <p>{{ company.description or (company.city ~ ', ' ~ company.country) }}</p>
+  </div>
+  <div class="count-block"><strong>{{ pagination.total|number }}</strong><span>{{ 'resultados' if q or category else 'artículos' }}</span></div>
+</section>
+
+<form method="get" class="filters" role="search">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="Buscar en {{ company.name }}" aria-label="Buscar">
+  {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+  <button class="btn btn-dark" type="submit">Buscar</button>
+</form>
+{% if categories %}
+<nav class="chips" aria-label="Categorías">
+  <a class="chip{{ ' active' if not category }}" href="{{ url_for('store.store_detail', slug=company.slug, q=q or None) }}">Todo</a>
+  {% for name in categories %}
+  <a class="chip{{ ' active' if name == category }}" href="{{ url_for('store.store_detail', slug=company.slug, q=q or None, category=name) }}">{{ name }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+{% if pagination.items %}
+<div class="results-bar">
+  <span>{{ category or 'Todo el catálogo' }}{% if q %} · “{{ q }}”{% endif %}</span>
+  <span>Página {{ pagination.page }} de {{ pagination.pages }}</span>
+</div>
+<div class="product-grid">
+  {% for product, inventory in pagination.items %}
+  {{ product_card(product, inventory, quantity_form, product.id in wished) }}
+  {% endfor %}
+</div>
+{{ pager(pagination, 'store.store_detail', slug=company.slug, q=q, category=category) }}
+{% else %}
+<div class="card empty">No encontramos artículos con esos criterios. <a href="{{ url_for('store.store_detail', slug=company.slug) }}">Ver todo el catálogo</a>.</div>
+{% endif %}
+{% endblock %}

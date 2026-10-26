@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import product_card with context %}
+{% block title %}Favoritos{% endblock %}
+{% block content %}
+<div class="breadcrumbs"><a href="{{ url_for('store.index') }}">Tiendas</a><span aria-hidden="true">/</span><span>Favoritos</span></div>
+<div class="page-head">
+  <div>
+    <h1>Favoritos</h1>
+    <p class="muted">{{ rows|length }} guardados</p>
+  </div>
+</div>
+{% if rows %}
+<div class="product-grid">
+  {% for product, inventory in rows %}
+  {{ product_card(product, inventory, quantity_form, True) }}
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty">No tienes favoritos todavía. <a href="{{ url_for('store.index') }}">Explora las tiendas</a>.</div>
+{% endif %}
+{% endblock %}

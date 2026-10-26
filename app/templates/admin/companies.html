@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% from 'partials/macros.html' import pager, post_button %}
+{% block title %}Empresas{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Empresas</h1></div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Empresa</th><th>Ciudad</th><th class="num">Productos</th><th>Creada</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for company, products in pagination.items %}
+      <tr>
+        <td>{{ company.name }}</td>
+        <td>{{ company.city or '-' }}</td>
+        <td class="num">{{ products|number }}</td>
+        <td>{{ company.created_at|datefmt }}</td>
+        <td>{% if company.active %}<span class="badge badge-ok">Activa</span>{% else %}<span class="badge badge-danger">Inactiva</span>{% endif %}</td>
+        <td class="right">{{ post_button(url_for('admin.toggle_company', company_id=company.id), 'Desactivar' if company.active else 'Activar', 'btn btn-sm') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{{ pager(pagination, 'admin.companies') }}
+{% endblock %}

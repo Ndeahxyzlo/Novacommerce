@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Editar producto{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Editar producto</h1>
+    <p class="muted">{{ product.name }}. El stock se ajusta desde la ficha del producto.</p>
+  </div>
+</div>
+{% with show_quantity=false, cancel_url=url_for('products.view', product_id=product.id) %}{% include 'products/_form.html' %}{% endwith %}
+{% endblock %}
